@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Презентация</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #c9b8e8;
+      --accent-dark: #9b7fc7;
+      --accent-light: #ede8f7;
+      --text: #2c2c3a;
+      --text-muted: #6b6b82;
+      --bg: #fafafa;
+      --bar-h: 48px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── Progress bar ── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--bar-h);
+      background: #fff;
+      border-bottom: 1px solid var(--accent);
+      display: flex;
+      align-items: center;
+      z-index: 100;
+    }
+
+    #progress-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 4px;
+      background: var(--accent-dark);
+      transition: width 0.4s ease;
+      border-radius: 0 2px 2px 0;
+    }
+
+    #slide-counter {
+      margin-left: auto;
+      margin-right: 1.2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    /* ── Slides ── */
+    #slides {
+      position: fixed;
+      top: var(--bar-h);
+      left: 0; right: 0; bottom: 0;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: clamp(1.5rem, 6vw, 5rem) clamp(1.5rem, 8vw, 6rem);
+      text-align: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* ── Typography ── */
+    .slide h1 {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 700;
+      color: var(--accent-dark);
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+      font-weight: 600;
+      color: var(--accent-dark);
+      line-height: 1.25;
+      margin-bottom: 0.9rem;
+    }
+
+    .slide p {
+      font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+      line-height: 1.7;
+      color: var(--text);
+      max-width: 680px;
+    }
+
+    .slide .subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 400;
+    }
+
+    .slide ul, .slide ol {
+      text-align: left;
+      max-width: 620px;
+      width: 100%;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    .slide li { margin-bottom: 0.35rem; }
+    .slide li::marker { color: var(--accent-dark); }
+
+    .slide .tag {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      border-radius: 999px;
+      padding: 0.25em 0.9em;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .slide .card-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.2rem;
+      max-width: 740px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1.5px solid var(--accent);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
+      flex: 1 1 180px;
+      min-width: 150px;
+      max-width: 220px;
+      text-align: center;
+    }
+
+    .card .card-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .card .card-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 1.4rem;
+    }
+
+    .stat {
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .stat .stat-num {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      color: var(--accent-dark);
+      line-height: 1;
+    }
+
+    .stat .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .divider {
+      width: 60px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin: 1rem auto;
+    }
+
+    .contact-link {
+      display: inline-block;
+      margin-top: 1.2rem;
+      font-size: 1rem;
+      color: var(--accent-dark);
+      text-decoration: none;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 2px;
+    }
+
+    /* ── Nav arrows ── */
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 200;
+      background: #fff;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--accent-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .nav-btn:hover { background: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+    #prev { left: 0.8rem; }
+    #next { right: 0.8rem; }
+
+    @media (max-width: 540px) {
+      .nav-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="progress-bar">
+    <div id="progress-fill"></div>
+    <span id="slide-counter">1 / 12</span>
+  </div>
+
+  <div id="slides">
+
+    <!-- Slide 1: Title -->
+    <div class="slide active">
+      <div class="tag">2026</div>
+      <h1>Современные технологии<br>в бизнесе</h1>
+      <div class="divider"></div>
+      <p class="subtitle">Как цифровая трансформация меняет<br>подход к управлению и росту</p>
+      <p style="margin-top:1.5rem; font-size:0.9rem; color:var(--text-muted);">Используйте стрелки или свайп для навигации</p>
+    </div>
+
+    <!-- Slide 2: Agenda -->
+    <div class="slide">
+      <h2>Содержание</h2>
+      <div class="divider"></div>
+      <ol style="margin-top:1rem;">
+        <li>Введение и контекст</li>
+        <li>Три ключевых тренда</li>
+        <li>Данные и статистика</li>
+        <li>Реальные кейсы</li>
+        <li>Преимущества внедрения</li>
+        <li>Риски и ограничения</li>
+        <li>Выводы и следующие шаги</li>
+      </ol>
+    </div>
+
+    <!-- Slide 3: Introduction -->
+    <div class="slide">
+      <div class="tag">Введение</div>
+      <h2>Почему это важно сейчас?</h2>
+      <div class="divider"></div>
+      <p>Мир меняется быстрее, чем когда-либо. Компании, которые не успевают адаптироваться к цифровым изменениям, теряют конкурентоспособность уже в течение нескольких лет.</p>
+      <p style="margin-top:1rem;">Цифровая трансформация — это не опция, а необходимость для устойчивого роста.</p>
+    </div>
+
+    <!-- Slide 4: Trend 1 -->
+    <div class="slide">
+      <div class="tag">Тренд 1</div>
+      <h2>Искусственный интеллект</h2>
+      <div class="divider"></div>
+      <p>ИИ перестал быть экспериментом — он встроен в процессы от найма до логистики. Автоматизация рутинных задач освобождает людей для творческой и стратегической работы.</p>
+      <div class="card-row">
+        <div class="card"><div class="card-icon">🤖</div><div class="card-label">Автоматизация</div></div>
+        <div class="card"><div class="card-icon">📊</div><div class="card-label">Аналитика</div></div>
+        <div class="card"><div class="card-icon">💬</div><div class="card-label">Чат-боты</div></div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Trend 2 -->
+    <div class="slide">
+      <div class="tag">Тренд 2</div>
+      <h2>Облачные технологии</h2>
+      <div class="divider"></div>
+      <p>Облако стало стандартом инфраструктуры. Гибкость масштабирования, доступность 24/7 и снижение капитальных расходов делают облачные решения привлекательными для бизнеса любого размера.</p>
+      <div class="card-row">
+        <div class="card"><div class="card-icon">☁️</div><div class="card-label">Масштабируемость</div></div>
+        <div class="card"><div class="card-icon">🔒</div><div class="card-label">Безопасность</div></div>
+        <div class="card"><div class="card-icon">💡</div><div class="card-label">Гибкость</div></div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Trend 3 -->
+    <div class="slide">
+      <div class="tag">Тренд 3</div>
+      <h2>Персонализация опыта</h2>
+      <div class="divider"></div>
+      <p>Клиенты ожидают индивидуального подхода. Данные позволяют строить персонализированные пути взаимодействия — от рекомендаций товаров до адаптивного контента.</p>
+      <div class="card-row">
+        <div class="card"><div class="card-icon">🎯</div><div class="card-label">Таргетинг</div></div>
+        <div class="card"><div class="card-icon">📱</div><div class="card-label">Омниканальность</div></div>
+        <div class="card"><div class="card-icon">❤️</div><div class="card-label">Лояльность</div></div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Stats -->
+    <div class="slide">
+      <div class="tag">Данные</div>
+      <h2>Цифры говорят сами</h2>
+      <div class="divider"></div>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">87%</div>
+          <div class="stat-label">компаний считают<br>цифровизацию приоритетом</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">3.4×</div>
+          <div class="stat-label">рост эффективности<br>после внедрения ИИ</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">$4.4T</div>
+          <div class="stat-label">объём рынка<br>цифровых технологий</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: Cases -->
+    <div class="slide">
+      <div class="tag">Кейсы</div>
+      <h2>Примеры из практики</h2>
+      <div class="divider"></div>
+      <ul style="margin-top:0.5rem;">
+        <li><strong>Ретейл:</strong> персонализированные рекомендации увеличили выручку на 35%</li>
+        <li><strong>Логистика:</strong> маршрутизация на базе ИИ сократила издержки на 22%</li>
+        <li><strong>HR:</strong> автоматический скрининг резюме снизил время найма вдвое</li>
+        <li><strong>Поддержка:</strong> чат-боты обрабатывают 60% обращений без участия человека</li>
+      </ul>
+    </div>
+
+    <!-- Slide 9: Benefits -->
+    <div class="slide">
+      <div class="tag">Преимущества</div>
+      <h2>Что вы получаете</h2>
+      <div class="divider"></div>
+      <ul style="margin-top:0.5rem;">
+        <li>Снижение операционных затрат на 15–40%</li>
+        <li>Ускорение вывода продуктов на рынок</li>
+        <li>Повышение удовлетворённости клиентов</li>
+        <li>Прозрачность бизнес-процессов в реальном времени</li>
+        <li>Конкурентное преимущество и устойчивый рост</li>
+      </ul>
+    </div>
+
+    <!-- Slide 10: Risks -->
+    <div class="slide">
+      <div class="tag">Риски</div>
+      <h2>Ограничения и вызовы</h2>
+      <div class="divider"></div>
+      <ul style="margin-top:0.5rem;">
+        <li>Высокие первоначальные инвестиции</li>
+        <li>Сопротивление изменениям внутри команды</li>
+        <li>Риски информационной безопасности</li>
+        <li>Зависимость от качества данных</li>
+        <li>Необходимость постоянного обучения персонала</li>
+      </ul>
+      <p style="margin-top:1.2rem; font-size:0.9rem; color:var(--text-muted);">Правильная стратегия минимизирует большинство из этих рисков.</p>
+    </div>
+
+    <!-- Slide 11: Conclusions -->
+    <div class="slide">
+      <div class="tag">Выводы</div>
+      <h2>Итоги и следующие шаги</h2>
+      <div class="divider"></div>
+      <ul style="margin-top:0.5rem;">
+        <li>Начните с аудита текущих процессов</li>
+        <li>Определите 2–3 ключевых направления для пилота</li>
+        <li>Инвестируйте в обучение команды</li>
+        <li>Измеряйте результат с первого дня</li>
+        <li>Масштабируйте то, что работает</li>
+      </ul>
+      <p style="margin-top:1.2rem;">Трансформация — это путь, а не событие.</p>
+    </div>
+
+    <!-- Slide 12: Contact -->
+    <div class="slide">
+      <h1>Спасибо!</h1>
+      <div class="divider"></div>
+      <p class="subtitle">Вопросы и обратная связь</p>
+      <p style="margin-top:1rem;">Готов обсудить детали и ответить на ваши вопросы.</p>
+      <a class="contact-link" href="mailto:hello@example.com">hello@example.com</a>
+      <p style="margin-top:2rem; font-size:0.85rem; color:var(--text-muted);">Слайд 12 из 12</p>
+    </div>
+
+  </div>
+
+  <button class="nav-btn" id="prev" aria-label="Предыдущий слайд">&#8592;</button>
+  <button class="nav-btn" id="next" aria-label="Следующий слайд">&#8594;</button>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const fill   = document.getElementById('progress-fill');
+    const counter = document.getElementById('slide-counter');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const total   = slides.length;
+    let current   = 0;
+
+    function showSlide(n) {
+      slides[current].classList.remove('active');
+      current = (n + total) % total;
+      slides[current].classList.add('active');
+      fill.style.width = ((current + 1) / total * 100) + '%';
+      counter.textContent = (current + 1) + ' / ' + total;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === total - 1;
+    }
+
+    prevBtn.addEventListener('click', () => { if (current > 0) showSlide(current - 1); });
+    nextBtn.addEventListener('click', () => { if (current < total - 1) showSlide(current + 1); });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft')  { if (current > 0) showSlide(current - 1); }
+      if (e.key === 'ArrowRight') { if (current < total - 1) showSlide(current + 1); }
+    });
+
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) < 50) return;
+      if (dx < 0 && current < total - 1) showSlide(current + 1);
+      if (dx > 0 && current > 0)         showSlide(current - 1);
+    }, { passive: true });
+
+    // init
+    showSlide(0);
+  </script>
+</body>
+</html>
