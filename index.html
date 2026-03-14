@@ -1,1585 +1,307 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Презентация</title>
-<style>
-/* ─── reset & base ─── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:       #FAFAFA;
-  --bg2:      #F3EFF9;
-  --lila:     #C4B5E8;
-  --lila-d:   #8B7BC0;
-  --lila-dd:  #5C4E8F;
-  --lila-xl:  #EDE8F8;
-  --text:     #26212F;
-  --text-s:   #6B637A;
-  --border:   #DDD5F0;
-  --white:    #FFFFFF;
-  --r:        18px;
-  --r-s:      10px;
-  --shadow:   0 4px 24px rgba(139,123,192,.14);
-  --shadow-s: 0 2px 10px rgba(139,123,192,.10);
-}
-
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-               'Helvetica Neue', Arial, sans-serif;
-  overflow: hidden;
-}
-
-/* ─── progress bar ─── */
-#progress-wrap {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 4px;
-  background: var(--border);
-  z-index: 500;
-}
-#progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--lila), var(--lila-d));
-  transition: width .5s cubic-bezier(.4,0,.2,1);
-}
-
-/* ─── slide counter ─── */
-#counter {
-  position: fixed;
-  top: 14px; right: 20px;
-  font-size: 13px;
-  color: var(--text-s);
-  letter-spacing: .06em;
-  z-index: 500;
-  font-variant-numeric: tabular-nums;
-}
-#counter b { color: var(--lila-d); }
-
-/* ─── slides ─── */
-#deck {
-  position: fixed;
-  inset: 0;
-}
-
-.slide {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 48px 48px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .52s cubic-bezier(.4,0,.2,1);
-  overflow: hidden;
-}
-.slide.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* ─── nav arrows ─── */
-.nav {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 400;
-  background: var(--white);
-  border: 2px solid var(--border);
-  border-radius: 50%;
-  width: 44px; height: 44px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: background .2s, border-color .2s, opacity .2s, transform .2s;
-  box-shadow: var(--shadow-s);
-}
-.nav:hover { background: var(--lila-xl); border-color: var(--lila); transform: translateY(-50%) scale(1.08); }
-.nav:active { transform: translateY(-50%) scale(.96); }
-.nav.hidden { opacity: 0; pointer-events: none; }
-#nav-prev { left: 14px; }
-#nav-next { right: 14px; }
-.nav svg { width: 18px; height: 18px; stroke: var(--lila-d); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ─── dot nav ─── */
-#dots {
-  position: fixed;
-  bottom: 18px; left: 50%;
-  transform: translateX(-50%);
-  display: flex; gap: 7px;
-  z-index: 400;
-}
-.dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--border);
-  cursor: pointer;
-  transition: background .25s, transform .25s;
-}
-.dot.active { background: var(--lila-d); transform: scale(1.4); }
-
-/* ══════════════════════════════════════════════
-   SLIDE LAYOUTS
-══════════════════════════════════════════════ */
-
-/* ── layout: center ── */
-.l-center {
-  flex-direction: column;
-  text-align: center;
-  gap: 0;
-}
-
-/* ── layout: split ── */
-.l-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: center;
-  width: 100%; max-width: 1060px;
-}
-.l-split-rev { direction: rtl; }
-.l-split-rev > * { direction: ltr; }
-
-/* ── layout: content (single column) ── */
-.l-content {
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%; max-width: 820px;
-  gap: 32px;
-}
-
-/* ── layout: wide ── */
-.l-wide {
-  flex-direction: column;
-  width: 100%; max-width: 1060px;
-  gap: 36px;
-}
-
-/* ══════════════════════════════════════════════
-   TYPOGRAPHY
-══════════════════════════════════════════════ */
-.eyebrow {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--lila-d);
-  margin-bottom: 14px;
-}
-.eyebrow::before { content: ''; display: inline-block; width: 20px; height: 2px; background: var(--lila); vertical-align: middle; margin-right: 8px; border-radius: 2px; }
-
-h1.hero {
-  font-size: clamp(42px, 6.5vw, 84px);
-  font-weight: 800;
-  line-height: 1.07;
-  letter-spacing: -.02em;
-  color: var(--text);
-}
-h1.hero em { font-style: normal; color: var(--lila-d); }
-
-h2.title {
-  font-size: clamp(28px, 4vw, 50px);
-  font-weight: 750;
-  line-height: 1.15;
-  letter-spacing: -.01em;
-  color: var(--text);
-}
-h2.title em { font-style: normal; color: var(--lila-d); }
-
-h3.card-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-
-p.lead {
-  font-size: clamp(16px, 1.9vw, 20px);
-  line-height: 1.65;
-  color: var(--text-s);
-  max-width: 560px;
-}
-p.body-text {
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--text-s);
-}
-
-/* ══════════════════════════════════════════════
-   COMPONENTS
-══════════════════════════════════════════════ */
-
-/* pill / tag */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--lila-xl);
-  color: var(--lila-dd);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 16px;
-  border-radius: 999px;
-  margin-bottom: 22px;
-}
-
-/* cards */
-.cards {
-  display: grid;
-  gap: 18px;
-  width: 100%;
-}
-.cards-3 { grid-template-columns: repeat(3, 1fr); }
-.cards-2 { grid-template-columns: repeat(2, 1fr); }
-.cards-4 { grid-template-columns: repeat(4, 1fr); }
-
-.card {
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r);
-  padding: 24px 22px;
-  box-shadow: var(--shadow-s);
-  transition: transform .2s, box-shadow .2s;
-}
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
-
-.card-icon {
-  width: 44px; height: 44px;
-  background: var(--lila-xl);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-  margin-bottom: 14px;
-}
-
-/* quote */
-.quote-block {
-  background: var(--lila-xl);
-  border-left: 4px solid var(--lila-d);
-  border-radius: 0 var(--r) var(--r) 0;
-  padding: 32px 36px;
-  max-width: 680px;
-}
-.quote-text {
-  font-size: clamp(20px, 2.5vw, 28px);
-  font-weight: 600;
-  line-height: 1.45;
-  color: var(--text);
-  margin-bottom: 18px;
-}
-.quote-author {
-  font-size: 14px;
-  color: var(--lila-d);
-  font-weight: 600;
-}
-
-/* stats */
-.stats { display: flex; gap: 24px; flex-wrap: wrap; }
-.stat {
-  flex: 1;
-  min-width: 140px;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r);
-  padding: 28px 24px;
-  text-align: center;
-  box-shadow: var(--shadow-s);
-}
-.stat-num {
-  font-size: clamp(36px, 5vw, 58px);
-  font-weight: 800;
-  color: var(--lila-d);
-  line-height: 1;
-  letter-spacing: -.02em;
-}
-.stat-label {
-  font-size: 14px;
-  color: var(--text-s);
-  margin-top: 8px;
-  font-weight: 500;
-}
-
-/* list */
-.fancy-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-}
-.fancy-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-s);
-  padding: 16px 20px;
-}
-.fancy-item-num {
-  flex-shrink: 0;
-  width: 30px; height: 30px;
-  background: var(--lila);
-  color: var(--white);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-}
-.fancy-item-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-.fancy-item-body p  { font-size: 14px; color: var(--text-s); line-height: 1.5; }
-
-/* accent card */
-.accent-card {
-  background: linear-gradient(135deg, var(--lila-d), var(--lila-dd));
-  border-radius: var(--r);
-  padding: 44px 48px;
-  color: var(--white);
-  box-shadow: 0 8px 32px rgba(139,123,192,.35);
-}
-.accent-card h2 { color: var(--white); }
-.accent-card .eyebrow { color: rgba(255,255,255,.7); }
-.accent-card .eyebrow::before { background: rgba(255,255,255,.4); }
-.accent-card p { color: rgba(255,255,255,.85); }
-
-/* timeline */
-.timeline { display: flex; flex-direction: column; gap: 0; width: 100%; }
-.tl-item {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
-.tl-left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  padding-top: 4px;
-}
-.tl-dot {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: var(--lila-d);
-  border: 2.5px solid var(--white);
-  box-shadow: 0 0 0 2px var(--lila);
-  flex-shrink: 0;
-}
-.tl-line {
-  width: 2px;
-  flex: 1;
-  min-height: 28px;
-  background: var(--border);
-  margin: 5px 0;
-}
-.tl-body { padding-bottom: 28px; }
-.tl-body h4 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.tl-body p  { font-size: 14px; color: var(--text-s); line-height: 1.5; }
-
-/* table */
-.compare {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 8px;
-}
-.compare th {
-  font-size: 12px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .1em;
-  color: var(--text-s);
-  text-align: left;
-  padding: 0 16px 6px;
-}
-.compare td {
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  padding: 14px 16px;
-  font-size: 15px;
-}
-.compare td:first-child { border-radius: var(--r-s) 0 0 var(--r-s); font-weight: 600; color: var(--text); }
-.compare td:last-child  { border-radius: 0 var(--r-s) var(--r-s) 0; color: var(--text-s); }
-.compare td.yes { color: var(--lila-dd); font-weight: 600; }
-.compare td.no  { color: #B0A0C0; }
-
-/* SVG illus */
-.illus { flex-shrink: 0; }
-
-/* ── accent bg slide ── */
-.slide-accent { background: linear-gradient(145deg, var(--lila-xl) 0%, #E8E0F8 100%); }
-.slide-dark    { background: linear-gradient(145deg, var(--lila-dd), #3A2D6A); }
-.slide-dark .eyebrow { color: rgba(255,255,255,.65); }
-.slide-dark .eyebrow::before { background: rgba(255,255,255,.4); }
-.slide-dark h2.title { color: #fff; }
-.slide-dark h1.hero  { color: #fff; }
-.slide-dark p.lead   { color: rgba(255,255,255,.75); }
-.slide-dark .pill { background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); }
-
-/* ── slide cats ── */
-.slide-cat {
-  position: absolute;
-  pointer-events: none;
-  z-index: 5;
-  transform-origin: bottom right;
-}
-/* cats at top/right get top-right origin */
-.slide-cat.top-right { transform-origin: top right; }
-@media (max-width: 900px) {
-  .slide-cat { transform: scale(.68); opacity: .85; }
-}
-@media (max-width: 600px) {
-  .slide-cat { transform: scale(.46); opacity: .8; }
-}
-
-/* ── dialogue (slide 1) ── */
-.dialogue {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 28px;
-  text-align: left;
-}
-.dlg-q {
-  font-size: clamp(15px, 1.7vw, 18px);
-  font-weight: 600;
-  color: var(--text);
-}
-.dlg-a {
-  font-size: clamp(15px, 1.7vw, 18px);
-  color: var(--text-s);
-  padding-left: 20px;
-  border-left: 3px solid var(--lila);
-}
-.dlg-a em { font-style: italic; color: var(--lila-d); }
-.dlg-aside {
-  font-size: 14px;
-  font-style: italic;
-  color: var(--lila-d);
-  margin-top: 4px;
-  padding-left: 20px;
-}
-
-/* ── translator blocks (slide 3) ── */
-.translate-row {
-  display: grid;
-  grid-template-columns: 1fr 44px 1fr;
-  align-items: center;
-  gap: 0;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-s);
-  overflow: hidden;
-  box-shadow: var(--shadow-s);
-}
-.tr-from, .tr-to {
-  padding: 14px 18px;
-  font-size: 15px;
-  line-height: 1.5;
-}
-.tr-from { color: var(--text-s); }
-.tr-to   { color: var(--text); font-weight: 600; background: var(--lila-xl); }
-.tr-arrow {
-  display: flex; align-items: center; justify-content: center;
-  background: var(--lila);
-  height: 100%;
-  color: white;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-/* ── vs comparison (slide 4) ── */
-.vs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  width: 100%;
-}
-.vs-col { display: flex; flex-direction: column; gap: 12px; }
-.vs-label {
-  font-size: 12px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .12em;
-  padding: 8px 16px;
-  border-radius: var(--r-s);
-  text-align: center;
-}
-.vs-label-muted { background: #F0EDF6; color: var(--text-s); }
-.vs-label-accent { background: var(--lila-d); color: #fff; }
-.vs-item {
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-s);
-  padding: 14px 16px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--text-s);
-}
-.vs-col:last-child .vs-item {
-  border-color: var(--lila);
-  color: var(--text);
-  font-weight: 500;
-}
-
-/* ── jobs grid (slide 7) ── */
-.jobs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  width: 100%;
-}
-.job-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-s);
-  padding: 12px 16px;
-}
-.job-num {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--lila-d);
-  flex-shrink: 0;
-  min-width: 26px;
-  letter-spacing: .02em;
-}
-.job-text { font-size: 14px; color: var(--text-s); line-height: 1.45; }
-
-/* ── perks (slide 10) ── */
-.perk-list { display: flex; flex-direction: column; gap: 14px; width: 100%; }
-.perk-item {
-  display: flex; gap: 14px; align-items: flex-start;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-s);
-  padding: 14px 18px;
-}
-.perk-icon { font-size: 22px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
-.perk-body p { font-size: 14.5px; color: var(--text-s); line-height: 1.5; }
-.perk-body strong { display: block; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-
-/* ══════════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .slide { padding: 52px 20px 52px; }
-  .l-split { grid-template-columns: 1fr; gap: 28px; }
-  .l-split .illus { display: none; }
-  .cards-3 { grid-template-columns: 1fr; }
-  .cards-4 { grid-template-columns: repeat(2,1fr); }
-  .cards-2 { grid-template-columns: 1fr; }
-  .stats   { gap: 14px; }
-  .nav { width: 36px; height: 36px; }
-  #nav-prev { left: 6px; }
-  #nav-next { right: 6px; }
-  .accent-card { padding: 28px 24px; }
-  .quote-block { padding: 22px 24px; }
-  .vs-grid { grid-template-columns: 1fr; }
-  .jobs-grid { grid-template-columns: 1fr; }
-  .translate-row { grid-template-columns: 1fr 36px 1fr; }
-}
-@media (max-width: 480px) {
-  .cards-4 { grid-template-columns: 1fr 1fr; }
-  .stats { flex-direction: column; }
-  .l-wide { gap: 20px; }
-  .dialogue { margin-top: 18px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кто такой проджект</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<!-- progress -->
-<div id="progress-wrap"><div id="progress-bar"></div></div>
-<div id="counter"><b>1</b> / 12</div>
-
-<!-- deck -->
-<div id="deck">
-
-<!-- ═══ 1 · КТО ТАКОЙ ПРОДЖЕКТ ═══ -->
-<section class="slide active" style="align-items:center;justify-content:center">
-  <!-- CAT 1: confused, tilted head, one eye wide one squinting, ? floating -->
-  <div class="slide-cat" style="bottom:16px;right:42px">
-    <svg viewBox="0 0 158 192" width="148" height="180">
-      <text x="112" y="28" font-size="28" fill="#8B7BC0" font-weight="900">?</text>
-      <text x="132" y="52" font-size="17" fill="#B8A5D4" font-weight="800">?</text>
-      <ellipse cx="74" cy="184" rx="42" ry="8" fill="#DDD5F0" opacity=".5"/>
-      <path d="M 28 154 C 6 146 3 168 16 172 C 29 176 48 163 50 152" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <ellipse cx="74" cy="134" rx="42" ry="36" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <ellipse cx="74" cy="140" rx="24" ry="21" fill="#FDE8D0" opacity=".7"/>
-      <g transform="rotate(16,74,82)">
-        <ellipse cx="74" cy="82" rx="29" ry="27" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-        <path d="M 53 66 L 45 41 L 64 60 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-        <path d="M 55 64 L 50 48 L 63 60 Z" fill="#F5A8A8"/>
-        <path d="M 93 64 L 101 40 L 104 60 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-        <path d="M 94 63 L 100 45 L 102 60 Z" fill="#F5A8A8"/>
-        <!-- left eye: squint -->
-        <path d="M 59 80 C 62 75 68 75 71 80" fill="none" stroke="#3D2B1F" stroke-width="2.4" stroke-linecap="round"/>
-        <!-- right eye: wide open -->
-        <ellipse cx="87" cy="80" rx="9" ry="10" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-        <ellipse cx="87" cy="81" rx="5.5" ry="6.5" fill="#2A1A0E"/>
-        <ellipse cx="89" cy="79" rx="2" ry="2" fill="white"/>
-        <!-- raised brow -->
-        <path d="M 81 67 C 85 62 92 63 96 67" fill="none" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-        <path d="M 71 90 L 77 90 L 74 94 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.3"/>
-        <!-- wobbly confused mouth -->
-        <path d="M 66 99 C 70 104 75 100 79 104 C 82 107 83 100 83 100" fill="none" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-        <ellipse cx="61" cy="89" rx="9" ry="5.5" fill="#F5A0A0" opacity=".35"/>
-        <ellipse cx="89" cy="89" rx="9" ry="5.5" fill="#F5A0A0" opacity=".35"/>
-        <line x1="72" y1="91" x2="47" y2="86" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-        <line x1="72" y1="93" x2="46" y2="93" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-        <line x1="76" y1="91" x2="101" y2="86" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-        <line x1="76" y1="93" x2="102" y2="93" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      </g>
-      <ellipse cx="52" cy="163" rx="18" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <ellipse cx="97" cy="163" rx="18" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-    </svg>
+  <div id="progress-wrap" aria-hidden="true">
+    <div id="progress-bar"></div>
   </div>
-  <div style="max-width:680px;width:100%">
-    <div class="eyebrow">Слайд 1</div>
-    <h1 class="hero" style="margin-bottom:6px">Кто же такой<br><em>проджект?</em></h1>
-    <p class="lead" style="margin-bottom:0;max-width:560px">
-      Каждый раз когда я говорю кем работаю — вижу один и тот же взгляд.
-    </p>
-    <div class="dialogue">
-      <div class="dlg-q">— Даш, а кем ты работаешь?</div>
-      <div class="dlg-q">— Проджект-менеджером</div>
-      <div class="dlg-a">— Ааа, типа как ассистент?</div>
-      <div class="dlg-a">— Ааа, типа за маркетинг отвечаешь?</div>
-      <div class="dlg-a">— Ааа, ну понятно</div>
-      <div class="dlg-aside"><em>(непонятно)</em></div>
-    </div>
-  </div>
-</section>
+  <div id="counter" aria-live="polite"><b>1</b> / 12</div>
 
-<!-- ═══ 2 · ЧТО ВСЕ ДУМАЮТ ═══ -->
-<section class="slide l-center slide-accent" style="position:relative">
-  <!-- CAT 2: lazy cat lying next to laptop, bored sleepy eyes, paw clicking "forward" -->
-  <div class="slide-cat" style="bottom:22px;right:36px">
-    <svg viewBox="0 0 210 148" width="200" height="140">
-      <!-- laptop -->
-      <rect x="6" y="74" width="98" height="64" rx="6" fill="#5A5A70" stroke="#3D2B1F" stroke-width="2"/>
-      <rect x="12" y="80" width="86" height="50" rx="3" fill="#8090C0"/>
-      <text x="19" y="98" font-size="8.5" fill="white" font-weight="700">Fwd: Fwd: Fwd:</text>
-      <text x="19" y="110" font-size="7.5" fill="rgba(255,255,255,.65)">Re: Важное дело</text>
-      <text x="19" y="121" font-size="7" fill="rgba(255,255,255,.45)">&gt; Ок.</text>
-      <rect x="6" y="137" width="98" height="6" rx="3" fill="#6A6A80" stroke="#3D2B1F" stroke-width="1.5"/>
-      <!-- shadow -->
-      <ellipse cx="158" cy="140" rx="44" ry="8" fill="#DDD5F0" opacity=".5"/>
-      <!-- tail -->
-      <path d="M 118 128 C 104 117 98 132 110 138 C 122 143 138 130 132 118" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <!-- body lying -->
-      <ellipse cx="160" cy="120" rx="38" ry="21" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2" transform="rotate(-4,160,120)"/>
-      <ellipse cx="160" cy="120" rx="20" ry="12" fill="#FDE8D0" opacity=".7" transform="rotate(-4,160,120)"/>
-      <!-- paw reaching keyboard -->
-      <ellipse cx="112" cy="133" rx="17" ry="8" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-15,112,133)"/>
-      <!-- head resting -->
-      <ellipse cx="192" cy="102" rx="24" ry="22" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2"/>
-      <path d="M 177 87 L 170 65 L 188 83 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M 178 86 L 173 70 L 187 83 Z" fill="#F5A8A8"/>
-      <path d="M 205 85 L 212 63 L 214 83 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M 206 84 L 211 68 L 213 82 Z" fill="#F5A8A8"/>
-      <!-- droopy bored eyes (half-closed arcs + drooping lids) -->
-      <ellipse cx="183" cy="100" rx="7" ry="8" fill="white" stroke="#3D2B1F" stroke-width="1.8"/>
-      <ellipse cx="183" cy="101" rx="4.5" ry="3" fill="#2A1A0E"/>
-      <path d="M 177 98 C 180 94 186 94 189 98" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="1.8" stroke-linecap="round"/>
-      <ellipse cx="202" cy="100" rx="7" ry="8" fill="white" stroke="#3D2B1F" stroke-width="1.8"/>
-      <ellipse cx="202" cy="101" rx="4.5" ry="3" fill="#2A1A0E"/>
-      <path d="M 196 98 C 199 94 205 94 208 98" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M 189 111 L 195 111 L 192 114 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.2"/>
-      <!-- flat bored mouth -->
-      <line x1="186" y1="119" x2="198" y2="119" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-      <!-- zzz -->
-      <text x="196" y="82" font-size="11" fill="#8B7BC0" font-weight="700" opacity=".7">z</text>
-      <text x="204" y="72" font-size="9" fill="#B8A5D4" font-weight="700" opacity=".6">z</text>
-    </svg>
-  </div>
-  <div style="max-width:700px;display:flex;flex-direction:column;align-items:center;gap:32px;text-align:center">
-    <div class="eyebrow">Слайд 2</div>
-    <h2 class="title">Что все <em>думают</em></h2>
-    <div class="quote-block" style="max-width:100%;text-align:left">
-      <div class="quote-text" style="font-size:clamp(18px,2.2vw,26px)">
-        Большинство думает, что проджект — это тот,
-        кто ходит на планёрки и пересылает письма.
+  <main id="deck">
+    <section class="slide slide--intro active" data-slide="1">
+      <figure class="slide-cat slide-cat--intro" aria-hidden="true">
+        <img src="assets/illustrations/cat-intro.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body slide-body--narrow">
+        <div class="paper-note paper-note--top">объяснять приходится почти каждому</div>
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 1</div>
+          <h1 class="hero hero--compact">Кто вообще такой<br><em>проджект?</em></h1>
+          <p class="lead">Профессия, которую почти все слышали, но мало кто правда понимает.</p>
+        </header>
+        <div class="dialogue" aria-label="Типичная реакция">
+          <div class="dlg-q">— А кем ты работаешь?</div>
+          <div class="dlg-q">— Проджект-менеджером</div>
+          <div class="dlg-a">— А, это что-то между ассистентом и человеком из созвонов?</div>
+          <div class="dlg-aside"><em>примерно с этого и начинается разговор</em></div>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══ 3 · ПЕРЕВОДЧИК ═══ -->
-<section class="slide l-content">
-  <!-- CAT 3: wearing tiny glasses, holding two speech bubbles, translator vibe -->
-  <div class="slide-cat" style="bottom:18px;right:36px">
-    <svg viewBox="0 0 170 200" width="156" height="185">
-      <ellipse cx="85" cy="192" rx="48" ry="9" fill="#DDD5F0" opacity=".5"/>
-      <!-- tail -->
-      <path d="M 38 162 C 16 154 13 176 26 180 C 39 184 58 171 58 160" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <!-- body -->
-      <ellipse cx="88" cy="145" rx="44" ry="38" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <ellipse cx="88" cy="152" rx="26" ry="24" fill="#FDE8D0" opacity=".7"/>
-      <!-- glasses on body (professorial badge) -->
-      <!-- head -->
-      <ellipse cx="88" cy="88" rx="30" ry="28" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <path d="M 66 72 L 58 46 L 76 66 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 67 70 L 62 54 L 74 66 Z" fill="#F5A8A8"/>
-      <path d="M 108 70 L 116 46 L 118 66 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 109 69 L 115 52 L 117 65 Z" fill="#F5A8A8"/>
-      <!-- glasses -->
-      <circle cx="78" cy="86" r="9" fill="none" stroke="#5C4E8F" stroke-width="2.2"/>
-      <circle cx="98" cy="86" r="9" fill="none" stroke="#5C4E8F" stroke-width="2.2"/>
-      <line x1="87" y1="86" x2="89" y2="86" stroke="#5C4E8F" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="69" y1="83" x2="64" y2="80" stroke="#5C4E8F" stroke-width="2" stroke-linecap="round"/>
-      <line x1="107" y1="83" x2="112" y2="80" stroke="#5C4E8F" stroke-width="2" stroke-linecap="round"/>
-      <!-- eyes behind glasses -->
-      <ellipse cx="78" cy="86" rx="5" ry="5.5" fill="white"/>
-      <ellipse cx="78" cy="87" rx="3" ry="3.5" fill="#2A1A0E"/>
-      <ellipse cx="79" cy="85" rx="1.2" ry="1.2" fill="white"/>
-      <ellipse cx="98" cy="86" rx="5" ry="5.5" fill="white"/>
-      <ellipse cx="98" cy="87" rx="3" ry="3.5" fill="#2A1A0E"/>
-      <ellipse cx="99" cy="85" rx="1.2" ry="1.2" fill="white"/>
-      <!-- confident smile -->
-      <path d="M 82 97 L 88 99 L 88 99 L 94 97" fill="none" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-      <path d="M 85 98 L 91 98" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-      <path d="M 85 96 L 85 102 L 91 102 L 91 96" fill="none" stroke="#3D2B1F" stroke-width="1.5" stroke-linejoin="round"/>
-      <!-- actual smile -->
-      <path d="M 82 96 C 85 101 91 101 94 96" fill="none" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-      <path d="M 85 97 L 85 98 L 88 99" fill="none" stroke="#3D2B1F" stroke-width="1"/>
-      <!-- proper smile -->
-      <path d="M 83 96 C 86 100 90 100 93 96" fill="none" stroke="#3D2B1F" stroke-width="1.9" stroke-linecap="round"/>
-      <ellipse cx="68" cy="95" rx="9" ry="5.5" fill="#F5A0A0" opacity=".35"/>
-      <ellipse cx="108" cy="95" rx="9" ry="5.5" fill="#F5A0A0" opacity=".35"/>
-      <line x1="84" y1="97" x2="60" y2="92" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="99" x2="59" y2="99" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="92" y1="97" x2="116" y2="92" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="92" y1="99" x2="117" y2="99" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <!-- paws -->
-      <ellipse cx="64" cy="175" rx="19" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <ellipse cx="112" cy="177" rx="19" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <!-- raised paw with pointing gesture -->
-      <ellipse cx="134" cy="142" rx="14" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-40,134,142)"/>
-    </svg>
-  </div>
-  <div>
-    <div class="eyebrow">Слайд 3</div>
-    <h2 class="title" style="margin-bottom:6px">На самом деле<br>проджект — это <em>переводчик</em></h2>
-    <p class="lead" style="font-size:16px;margin-bottom:0">Все говорят на разных языках. Проджект говорит на всех.</p>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:10px;width:100%">
-    <div class="translate-row">
-      <div class="tr-from">Клиент говорит: «хочу вот это»</div>
-      <div class="tr-arrow">→</div>
-      <div class="tr-to">Команде: что делаем, как делаем, когда сдаём</div>
-    </div>
-    <div class="translate-row">
-      <div class="tr-from">Команда говорит: «мы сделали, но есть нюанс»</div>
-      <div class="tr-arrow">→</div>
-      <div class="tr-to">Собственнику: всё идёт по плану, вот статус</div>
-    </div>
-    <div class="translate-row">
-      <div class="tr-from">Собственник говорит: «мне нужен результат»</div>
-      <div class="tr-arrow">→</div>
-      <div class="tr-to">Команде: вот приоритет, вот почему, вот дедлайн</div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ 4 · НЕ АССИСТЕНТ ═══ -->
-<section class="slide l-content">
-  <!-- CAT 4: superhero cape, PM badge on chest, confident hands on hips -->
-  <div class="slide-cat" style="bottom:16px;right:36px">
-    <svg viewBox="0 0 165 215" width="150" height="196">
-      <ellipse cx="82" cy="207" rx="46" ry="9" fill="#DDD5F0" opacity=".5"/>
-      <!-- cape -->
-      <path d="M 58 118 C 38 160 22 180 32 202 C 50 210 74 188 82 165" fill="#9B89C4" stroke="#5C4E8F" stroke-width="2"/>
-      <path d="M 106 118 C 126 160 142 180 132 202 C 114 210 90 188 82 165" fill="#8B79B4" stroke="#5C4E8F" stroke-width="2"/>
-      <!-- body -->
-      <ellipse cx="82" cy="148" rx="42" ry="36" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <!-- PM badge on chest -->
-      <rect x="68" y="138" width="28" height="18" rx="4" fill="#5C4E8F" stroke="#3D2B1F" stroke-width="1.5"/>
-      <text x="82" y="151" text-anchor="middle" font-size="11" font-weight="900" fill="white">PM</text>
-      <!-- arms on hips / confident pose -->
-      <ellipse cx="42" cy="148" rx="12" ry="8" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(30,42,148)"/>
-      <ellipse cx="122" cy="148" rx="12" ry="8" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-30,122,148)"/>
-      <!-- head -->
-      <ellipse cx="82" cy="86" rx="30" ry="28" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <path d="M 60 70 L 52 44 L 70 64 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 61 68 L 56 52 L 68 64 Z" fill="#F5A8A8"/>
-      <path d="M 102 68 L 110 44 L 113 64 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 103 67 L 109 50 L 112 63 Z" fill="#F5A8A8"/>
-      <!-- determined narrowed eyes -->
-      <ellipse cx="72" cy="84" rx="8" ry="7" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="72" cy="85" rx="5" ry="4.5" fill="#2A1A0E"/>
-      <ellipse cx="74" cy="83" rx="1.8" ry="1.8" fill="white"/>
-      <ellipse cx="92" cy="84" rx="8" ry="7" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="92" cy="85" rx="5" ry="4.5" fill="#2A1A0E"/>
-      <ellipse cx="94" cy="83" rx="1.8" ry="1.8" fill="white"/>
-      <!-- determined brows -->
-      <path d="M 65 74 C 68 70 74 70 77 74" fill="none" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M 87 74 C 90 70 96 70 99 74" fill="none" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M 79 93 L 85 93 L 82 96 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.3"/>
-      <!-- confident smile -->
-      <path d="M 75 101 C 79 106 85 106 89 101" fill="none" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <ellipse cx="62" cy="92" rx="9" ry="5.5" fill="#F5A0A0" opacity=".35"/>
-      <ellipse cx="102" cy="92" rx="9" ry="5.5" fill="#F5A0A0" opacity=".35"/>
-      <line x1="80" y1="94" x2="55" y2="89" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="80" y1="96" x2="54" y2="96" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="94" x2="109" y2="89" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="96" x2="110" y2="96" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <!-- paws at bottom -->
-      <ellipse cx="60" cy="177" rx="19" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <ellipse cx="104" cy="177" rx="19" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-    </svg>
-  </div>
-  <div>
-    <div class="eyebrow">Слайд 4</div>
-    <h2 class="title" style="margin-bottom:6px">Это <em>НЕ</em> ассистент</h2>
-    <p class="lead" style="font-size:16px;margin-bottom:0">
-      Проджект часто путают с ассистентом. Это не одно и то же.
-    </p>
-  </div>
-  <div class="vs-grid">
-    <div class="vs-col">
-      <div class="vs-label vs-label-muted">Ассистент</div>
-      <div class="vs-item">Получает задачу сверху — и делает.</div>
-      <div class="vs-item">Ждёт, что ему скажут что нужно.</div>
-      <div class="vs-item">Работает в рамках поставленного.</div>
-    </div>
-    <div class="vs-col">
-      <div class="vs-label vs-label-accent">Проджект</div>
-      <div class="vs-item">Сам видит, где нужно что-то сделать — и идёт туда.</div>
-      <div class="vs-item">Делает сам или говорит команде.</div>
-      <div class="vs-item">Никто не ставит проджекту задачи. Он их <strong style="color:var(--lila-dd)">находит</strong>.</div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ 5 · ГДЕ РАБОТАЕТ ═══ -->
-<section class="slide l-content">
-  <!-- CAT 5: sunglasses, lying on towel with cocktail, laptop open, happy -->
-  <div class="slide-cat" style="bottom:14px;right:30px">
-    <svg viewBox="0 0 220 155" width="210" height="148">
-      <!-- towel/mat -->
-      <rect x="12" y="108" width="188" height="26" rx="8" fill="#F5C8D8" stroke="#D4A0B8" stroke-width="2"/>
-      <line x1="40" y1="108" x2="40" y2="134" stroke="#D4A0B8" stroke-width="2" opacity=".5"/>
-      <line x1="80" y1="108" x2="80" y2="134" stroke="#D4A0B8" stroke-width="2" opacity=".5"/>
-      <line x1="120" y1="108" x2="120" y2="134" stroke="#D4A0B8" stroke-width="2" opacity=".5"/>
-      <line x1="160" y1="108" x2="160" y2="134" stroke="#D4A0B8" stroke-width="2" opacity=".5"/>
-      <!-- mini laptop -->
-      <rect x="14" y="72" width="72" height="46" rx="5" fill="#5A5A70" stroke="#3D2B1F" stroke-width="1.8"/>
-      <rect x="19" y="77" width="62" height="34" rx="3" fill="#7090B8"/>
-      <text x="50" y="92" text-anchor="middle" font-size="7.5" fill="white" font-weight="600">работаю с</text>
-      <text x="50" y="103" text-anchor="middle" font-size="7.5" fill="#A0F0A0" font-weight="600">🏝️ Бали</text>
-      <rect x="14" y="117" width="72" height="5" rx="2.5" fill="#6A6A80" stroke="#3D2B1F" stroke-width="1.5"/>
-      <!-- cocktail -->
-      <path d="M 178 48 L 195 80 L 170 80 Z" fill="#F5E0A0" stroke="#3D2B1F" stroke-width="1.8"/>
-      <rect x="180" y="80" width="5" height="16" rx="2" fill="#8B7060" stroke="#3D2B1F" stroke-width="1.5"/>
-      <ellipse cx="182" cy="97" rx="10" ry="4" fill="#8B7060" stroke="#3D2B1F" stroke-width="1.5"/>
-      <!-- straw -->
-      <line x1="188" y1="52" x2="196" y2="30" stroke="#F08080" stroke-width="3" stroke-linecap="round"/>
-      <!-- cherry -->
-      <circle cx="196" cy="28" r="5" fill="#E05050" stroke="#3D2B1F" stroke-width="1.5"/>
-      <!-- cat lying on back, relaxed -->
-      <ellipse cx="124" cy="100" rx="44" ry="22" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2" transform="rotate(-2,124,100)"/>
-      <ellipse cx="124" cy="100" rx="26" ry="13" fill="#FDE8D0" opacity=".7" transform="rotate(-2,124,100)"/>
-      <!-- tail curled -->
-      <path d="M 82 108 C 68 98 60 112 70 118 C 80 124 95 112 90 102" fill="none" stroke="#C8824A" stroke-width="7" stroke-linecap="round"/>
-      <!-- head -->
-      <ellipse cx="170" cy="84" rx="26" ry="24" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2"/>
-      <path d="M 154 70 L 147 48 L 162 66 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M 155 69 L 150 54 L 161 66 Z" fill="#F5A8A8"/>
-      <path d="M 184 68 L 191 46 L 193 66 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M 185 67 L 190 51 L 192 65 Z" fill="#F5A8A8"/>
-      <!-- sunglasses -->
-      <rect x="155" y="80" width="14" height="9" rx="4" fill="#2A2A3A" stroke="#1A1A2A" stroke-width="1.5"/>
-      <rect x="172" y="80" width="14" height="9" rx="4" fill="#2A2A3A" stroke="#1A1A2A" stroke-width="1.5"/>
-      <line x1="169" y1="84" x2="172" y2="84" stroke="#1A1A2A" stroke-width="2" stroke-linecap="round"/>
-      <line x1="149" y1="84" x2="155" y2="84" stroke="#1A1A2A" stroke-width="2" stroke-linecap="round"/>
-      <line x1="186" y1="84" x2="192" y2="84" stroke="#1A1A2A" stroke-width="2" stroke-linecap="round"/>
-      <path d="M 166 93 L 170 93 L 168 96 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.2"/>
-      <!-- blissful smile -->
-      <path d="M 161 100 C 165 106 175 106 179 100" fill="none" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <ellipse cx="157" cy="94" rx="8" ry="5" fill="#F5A0A0" opacity=".4"/>
-      <ellipse cx="182" cy="94" rx="8" ry="5" fill="#F5A0A0" opacity=".4"/>
-      <!-- paws up lazily -->
-      <ellipse cx="104" cy="88" rx="16" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-60,104,88)"/>
-      <ellipse cx="142" cy="88" rx="16" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(60,142,88)"/>
-    </svg>
-  </div>
-  <div>
-    <div class="eyebrow">Слайд 5</div>
-    <h2 class="title" style="margin-bottom:6px">Где работает<br><em>проджект</em></h2>
-    <p class="lead" style="font-size:clamp(16px,1.8vw,19px)">
-      Проджект — от слова <strong>проект</strong>. Проект — это любой онлайн-бизнес.
-    </p>
-  </div>
-  <div class="cards cards-3" style="gap:14px">
-    <div class="card" style="text-align:center;padding:22px 16px">
-      <div class="card-icon" style="margin:0 auto 12px">🏢</div>
-      <h3 class="card-title">Консалтинг</h3>
-      <p class="body-text" style="font-size:14px">Управление процессами и командами клиентов</p>
-    </div>
-    <div class="card" style="text-align:center;padding:22px 16px">
-      <div class="card-icon" style="margin:0 auto 12px">👥</div>
-      <h3 class="card-title">HR-агентство</h3>
-      <p class="body-text" style="font-size:14px">Координация найма, онбординга, процессов</p>
-    </div>
-    <div class="card" style="text-align:center;padding:22px 16px">
-      <div class="card-icon" style="margin:0 auto 12px">🎓</div>
-      <h3 class="card-title">Онлайн-школа</h3>
-      <p class="body-text" style="font-size:14px">Запуски, курсы, команды, дедлайны</p>
-    </div>
-  </div>
-  <p class="body-text" style="font-style:italic;color:var(--lila-d)">
-    Проджект нужен везде, где есть команда и задачи. Ну и в офлайне тоже можно, если что.
-  </p>
-</section>
-
-<!-- ═══ 6 · МОЙ ДЕНЬ ═══ -->
-<section class="slide l-content">
-  <!-- CAT 6: total chaos mode - papers flying, clock, 5 things at once, frantic expression -->
-  <div class="slide-cat top-right" style="top:50px;right:24px">
-    <svg viewBox="0 0 172 210" width="155" height="190">
-      <!-- flying papers -->
-      <rect x="110" y="18" width="36" height="28" rx="4" fill="white" stroke="#C4B5E8" stroke-width="1.8" transform="rotate(20,128,32)"/>
-      <line x1="118" y1="28" x2="138" y2="28" stroke="#C4B5E8" stroke-width="1.5" transform="rotate(20,128,32)"/>
-      <line x1="118" y1="34" x2="132" y2="34" stroke="#C4B5E8" stroke-width="1.5" transform="rotate(20,128,32)"/>
-      <rect x="126" y="52" width="32" height="24" rx="4" fill="white" stroke="#C4B5E8" stroke-width="1.8" transform="rotate(-15,142,64)"/>
-      <line x1="132" y1="60" x2="150" y2="60" stroke="#C4B5E8" stroke-width="1.5" transform="rotate(-15,142,64)"/>
-      <!-- clock -->
-      <circle cx="24" cy="38" r="20" fill="white" stroke="#8B7BC0" stroke-width="2.2"/>
-      <line x1="24" y1="38" x2="24" y2="24" stroke="#3D2B1F" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="24" y1="38" x2="34" y2="42" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="24" cy="38" r="2.5" fill="#8B7BC0"/>
-      <!-- exclamation marks -->
-      <text x="8" y="88" font-size="22" fill="#F5A070" font-weight="900">!</text>
-      <text x="148" y="96" font-size="18" fill="#C4B5E8" font-weight="900">!</text>
-      <!-- shadow -->
-      <ellipse cx="82" cy="202" rx="46" ry="9" fill="#DDD5F0" opacity=".5"/>
-      <!-- tail -->
-      <path d="M 36 164 C 14 156 11 178 24 182 C 37 186 56 173 56 162" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <!-- body -->
-      <ellipse cx="82" cy="148" rx="42" ry="36" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <ellipse cx="82" cy="154" rx="24" ry="21" fill="#FDE8D0" opacity=".7"/>
-      <!-- head -->
-      <ellipse cx="82" cy="88" rx="30" ry="28" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <path d="M 60 72 L 52 46 L 70 66 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 61 70 L 56 54 L 68 66 Z" fill="#F5A8A8"/>
-      <path d="M 102 70 L 110 46 L 113 66 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 103 69 L 109 52 L 112 65 Z" fill="#F5A8A8"/>
-      <!-- panicked wide eyes -->
-      <ellipse cx="70" cy="86" rx="9" ry="10" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="70" cy="87" rx="5.5" ry="6.5" fill="#2A1A0E"/>
-      <ellipse cx="72" cy="85" rx="2" ry="2" fill="white"/>
-      <ellipse cx="94" cy="86" rx="9" ry="10" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="94" cy="87" rx="5.5" ry="6.5" fill="#2A1A0E"/>
-      <ellipse cx="96" cy="85" rx="2" ry="2" fill="white"/>
-      <!-- stressed brows (slanted) -->
-      <path d="M 63 74 C 66 70 72 71 74 75" fill="none" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M 90 75 C 92 71 98 70 101 74" fill="none" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M 79 95 L 85 95 L 82 98 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.3"/>
-      <!-- stressed open mouth -->
-      <path d="M 74 103 C 78 110 86 110 90 103" fill="#F5A0A0" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <ellipse cx="62" cy="93" rx="9" ry="5.5" fill="#F5A0A0" opacity=".45"/>
-      <ellipse cx="102" cy="93" rx="9" ry="5.5" fill="#F5A0A0" opacity=".45"/>
-      <line x1="80" y1="96" x2="55" y2="91" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="80" y1="98" x2="54" y2="98" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="96" x2="109" y2="91" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="98" x2="110" y2="98" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <!-- many paws - busy cat -->
-      <ellipse cx="52" cy="175" rx="18" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <ellipse cx="112" cy="175" rx="18" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <!-- extra paws doing things -->
-      <ellipse cx="36" cy="148" rx="14" ry="8" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(40,36,148)"/>
-      <ellipse cx="128" cy="148" rx="14" ry="8" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-40,128,148)"/>
-    </svg>
-  </div>
-  <div>
-    <div class="eyebrow">Слайд 6</div>
-    <h2 class="title" style="margin-bottom:6px">Как выглядит<br><em>мой день</em></h2>
-    <p class="lead" style="font-size:16px">
-      Звучит как много всего — потому что это много всего.
-    </p>
-  </div>
-  <div class="cards cards-2" style="gap:12px">
-    <div class="card" style="padding:16px 18px;display:flex;gap:12px;align-items:flex-start">
-      <div class="card-icon" style="margin:0;flex-shrink:0;width:36px;height:36px;font-size:17px">📋</div>
-      <div><h3 class="card-title" style="font-size:15px">Дейлик с командой</h3><p class="body-text" style="font-size:13.5px">Ежедневная синхронизация — кто что делает, где затык</p></div>
-    </div>
-    <div class="card" style="padding:16px 18px;display:flex;gap:12px;align-items:flex-start">
-      <div class="card-icon" style="margin:0;flex-shrink:0;width:36px;height:36px;font-size:17px">🎯</div>
-      <div><h3 class="card-title" style="font-size:15px">Распределение задач</h3><p class="body-text" style="font-size:13.5px">Кто делает что и в какой очерёдности</p></div>
-    </div>
-    <div class="card" style="padding:16px 18px;display:flex;gap:12px;align-items:flex-start">
-      <div class="card-icon" style="margin:0;flex-shrink:0;width:36px;height:36px;font-size:17px">⏱️</div>
-      <div><h3 class="card-title" style="font-size:15px">Контроль сроков и рисков</h3><p class="body-text" style="font-size:13.5px">Отслеживаю, чтобы ничего не упало в последний момент</p></div>
-    </div>
-    <div class="card" style="padding:16px 18px;display:flex;gap:12px;align-items:flex-start">
-      <div class="card-icon" style="margin:0;flex-shrink:0;width:36px;height:36px;font-size:17px">💬</div>
-      <div><h3 class="card-title" style="font-size:15px">Разговоры один на один</h3><p class="body-text" style="font-size:13.5px">С каждым участником команды отдельно</p></div>
-    </div>
-    <div class="card" style="padding:16px 18px;display:flex;gap:12px;align-items:flex-start;grid-column:1/-1">
-      <div class="card-icon" style="margin:0;flex-shrink:0;width:36px;height:36px;font-size:17px">📊</div>
-      <div><h3 class="card-title" style="font-size:15px">Таблицы, тексты, чаты, встречи</h3><p class="body-text" style="font-size:13.5px">Это всё вместе, каждый день, в разных пропорциях</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ 7 · ЧТО ВХОДИТ В РАБОТУ ═══ -->
-<section class="slide l-wide" style="gap:24px;position:relative">
-  <!-- CAT 7: sitting, holding giant clipboard, pencil tucked behind ear, satisfied look -->
-  <div class="slide-cat top-right" style="top:44px;right:20px">
-    <svg viewBox="0 0 140 190" width="128" height="174">
-      <!-- clipboard -->
-      <rect x="86" y="76" width="46" height="60" rx="6" fill="#FDE8D0" stroke="#3D2B1F" stroke-width="2"/>
-      <rect x="96" y="68" width="26" height="12" rx="4" fill="#C4B5E8" stroke="#3D2B1F" stroke-width="2"/>
-      <line x1="92" y1="93" x2="126" y2="93" stroke="#C4B5E8" stroke-width="1.8"/>
-      <line x1="92" y1="103" x2="126" y2="103" stroke="#C4B5E8" stroke-width="1.8"/>
-      <line x1="92" y1="113" x2="116" y2="113" stroke="#C4B5E8" stroke-width="1.8"/>
-      <!-- checkmarks -->
-      <path d="M 92 91 L 95 94 L 100 88" fill="none" stroke="#5C4E8F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M 92 101 L 95 104 L 100 98" fill="none" stroke="#5C4E8F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- shadow -->
-      <ellipse cx="66" cy="183" rx="40" ry="8" fill="#DDD5F0" opacity=".5"/>
-      <!-- tail -->
-      <path d="M 24 158 C 4 150 2 170 14 175 C 26 179 44 167 44 156" fill="none" stroke="#C8824A" stroke-width="7.5" stroke-linecap="round"/>
-      <!-- body -->
-      <ellipse cx="68" cy="140" rx="40" ry="34" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2"/>
-      <ellipse cx="68" cy="146" rx="22" ry="20" fill="#FDE8D0" opacity=".7"/>
-      <!-- arm holding clipboard -->
-      <ellipse cx="88" cy="118" rx="12" ry="8" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-50,88,118)"/>
-      <!-- head -->
-      <ellipse cx="68" cy="82" rx="28" ry="27" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2"/>
-      <path d="M 48 66 L 40 42 L 58 62 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M 49 64 L 44 50 L 57 62 Z" fill="#F5A8A8"/>
-      <path d="M 86 64 L 94 42 L 97 62 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M 87 63 L 93 47 L 96 61 Z" fill="#F5A8A8"/>
-      <!-- pencil behind ear -->
-      <rect x="94" y="52" width="4" height="18" rx="2" fill="#F5E080" stroke="#3D2B1F" stroke-width="1.5" transform="rotate(20,96,61)"/>
-      <path d="M 96 52 L 98 46 L 100 52 Z" fill="#F5A070" stroke="#3D2B1F" stroke-width="1.2"/>
-      <!-- eyes: pleased/satisfied squint -->
-      <path d="M 57 80 C 60 76 65 76 68 80" fill="none" stroke="#3D2B1F" stroke-width="2.3" stroke-linecap="round"/>
-      <path d="M 72 80 C 75 76 80 76 83 80" fill="none" stroke="#3D2B1F" stroke-width="2.3" stroke-linecap="round"/>
-      <path d="M 65 89 L 71 89 L 68 93 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.2"/>
-      <path d="M 60 97 C 64 102 72 102 76 97" fill="none" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <ellipse cx="50" cy="88" rx="8" ry="5" fill="#F5A0A0" opacity=".35"/>
-      <ellipse cx="86" cy="88" rx="8" ry="5" fill="#F5A0A0" opacity=".35"/>
-      <line x1="66" y1="90" x2="43" y2="85" stroke="#3D2B1F" stroke-width="1.3" opacity=".6"/>
-      <line x1="66" y1="92" x2="42" y2="92" stroke="#3D2B1F" stroke-width="1.3" opacity=".6"/>
-      <line x1="70" y1="90" x2="93" y2="85" stroke="#3D2B1F" stroke-width="1.3" opacity=".6"/>
-      <line x1="70" y1="92" x2="94" y2="92" stroke="#3D2B1F" stroke-width="1.3" opacity=".6"/>
-      <ellipse cx="46" cy="168" rx="17" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="88" cy="168" rx="17" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2"/>
-    </svg>
-  </div>
-  <div>
-    <div class="eyebrow">Слайд 7</div>
-    <h2 class="title" style="margin-bottom:4px">Что входит<br>в <em>работу</em></h2>
-    <p class="lead" style="font-size:15px">И это далеко не всё.</p>
-  </div>
-  <div class="jobs-grid">
-    <div class="job-item"><span class="job-num">/01/</span><span class="job-text">Поиск специалистов в команду</span></div>
-    <div class="job-item"><span class="job-num">/02/</span><span class="job-text">Постановка задач</span></div>
-    <div class="job-item"><span class="job-num">/03/</span><span class="job-text">Контроль сроков</span></div>
-    <div class="job-item"><span class="job-num">/04/</span><span class="job-text">Контроль качества</span></div>
-    <div class="job-item"><span class="job-num">/05/</span><span class="job-text">Ежедневные планёрки с командой</span></div>
-    <div class="job-item"><span class="job-num">/06/</span><span class="job-text">Личные созвоны с каждым участником команды</span></div>
-    <div class="job-item"><span class="job-num">/07/</span><span class="job-text">Финансовый блок — смета, оплаты, отчётность</span></div>
-    <div class="job-item"><span class="job-num">/08/</span><span class="job-text">Операционные задачи — обновление цен, рассылки, отчёты</span></div>
-    <div class="job-item" style="grid-column:1/-1"><span class="job-num">/09/</span><span class="job-text">Анализ показателей проекта</span></div>
-  </div>
-</section>
-
-<!-- ═══ 8 · А ЕСЛИ НЕТ ПРОДЖЕКТА ═══ -->
-<section class="slide l-center">
-  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:560px">
-    <div class="eyebrow">Слайд 8</div>
-    <h2 class="title" style="margin-bottom:0">А если в проекте<br>нет <em>проджекта?</em></h2>
-
-    <!-- MEME: кот на стуле в огне, внизу "всё окей" -->
-    <div style="position:relative;width:100%;max-width:480px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18)">
-      <svg viewBox="0 0 480 360" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">
-
-        <!-- ── фон: комната ── -->
-        <rect width="480" height="360" fill="#FDEEC8"/>
-        <!-- стена -->
-        <rect x="0" y="0" width="480" height="268" fill="#FFF6DC"/>
-        <!-- плинтус -->
-        <rect x="0" y="262" width="480" height="8" rx="0" fill="#D4A840"/>
-        <!-- пол -->
-        <rect x="0" y="268" width="480" height="92" fill="#E8C870"/>
-        <!-- доски пола -->
-        <line x1="0" y1="292" x2="480" y2="292" stroke="#D4A840" stroke-width="1.5" opacity=".5"/>
-        <line x1="0" y1="316" x2="480" y2="316" stroke="#D4A840" stroke-width="1.5" opacity=".5"/>
-        <line x1="96" y1="268" x2="96" y2="360" stroke="#D4A840" stroke-width="1" opacity=".4"/>
-        <line x1="192" y1="268" x2="192" y2="360" stroke="#D4A840" stroke-width="1" opacity=".4"/>
-        <line x1="288" y1="268" x2="288" y2="360" stroke="#D4A840" stroke-width="1" opacity=".4"/>
-        <line x1="384" y1="268" x2="384" y2="360" stroke="#D4A840" stroke-width="1" opacity=".4"/>
-
-        <!-- ── ОГОНЬ слева ── -->
-        <!-- задние языки (тёмнее) -->
-        <path d="M 0 360 Q 12 300 6 255 Q 28 225 16 195 Q 44 215 34 248 Q 56 218 48 188 Q 72 208 62 244 Q 82 268 70 315 Q 54 360 0 360 Z" fill="#D44010" opacity=".7"/>
-        <!-- средние -->
-        <path d="M 0 360 Q 18 315 14 278 Q 36 250 26 228 Q 50 245 42 270 Q 64 292 50 332 Q 36 360 0 360 Z" fill="#F56820"/>
-        <!-- передние яркие -->
-        <path d="M 0 360 Q 22 330 25 300 Q 42 278 34 258 Q 54 272 48 296 Q 60 318 46 350 Q 28 360 0 360 Z" fill="#F5C030"/>
-        <!-- маленький язык левее -->
-        <path d="M 60 360 Q 68 330 62 308 Q 76 295 70 318 Q 82 338 72 360 Z" fill="#F57020"/>
-        <path d="M 78 360 Q 84 340 80 320 Q 92 310 88 330 Q 95 348 85 360 Z" fill="#F5A020" opacity=".8"/>
-
-        <!-- ── ОГОНЬ справа (зеркально) ── -->
-        <path d="M 480 360 Q 468 300 474 255 Q 452 225 464 195 Q 436 215 446 248 Q 424 218 432 188 Q 408 208 418 244 Q 398 268 410 315 Q 426 360 480 360 Z" fill="#D44010" opacity=".7"/>
-        <path d="M 480 360 Q 462 315 466 278 Q 444 250 454 228 Q 430 245 438 270 Q 416 292 430 332 Q 444 360 480 360 Z" fill="#F56820"/>
-        <path d="M 480 360 Q 458 330 455 300 Q 438 278 446 258 Q 426 272 432 296 Q 420 318 434 350 Q 452 360 480 360 Z" fill="#F5C030"/>
-        <path d="M 420 360 Q 412 330 418 308 Q 404 295 410 318 Q 398 338 408 360 Z" fill="#F57020"/>
-        <path d="M 402 360 Q 396 340 400 320 Q 388 310 392 330 Q 385 348 395 360 Z" fill="#F5A020" opacity=".8"/>
-
-        <!-- ── маленькие языки посередине фона ── -->
-        <path d="M 168 268 Q 175 248 170 232 Q 182 240 177 255 Q 188 265 178 268 Z" fill="#F57020" opacity=".6"/>
-        <path d="M 298 268 Q 306 246 301 230 Q 314 238 308 253 Q 320 263 310 268 Z" fill="#F5A020" opacity=".6"/>
-        <path d="M 226 268 Q 232 252 228 240 Q 238 247 234 258 Q 242 266 233 268 Z" fill="#F56820" opacity=".5"/>
-
-        <!-- ── СТУЛ ── -->
-        <!-- спинка: два столбика -->
-        <rect x="207" y="152" width="11" height="100" rx="4" fill="#9B7050" stroke="#3D2B1F" stroke-width="2"/>
-        <rect x="262" y="152" width="11" height="100" rx="4" fill="#9B7050" stroke="#3D2B1F" stroke-width="2"/>
-        <!-- поперечины спинки -->
-        <rect x="205" y="165" width="70" height="10" rx="4" fill="#B08060" stroke="#3D2B1F" stroke-width="1.8"/>
-        <rect x="205" y="188" width="70" height="9" rx="4" fill="#B08060" stroke="#3D2B1F" stroke-width="1.8"/>
-        <!-- сиденье -->
-        <rect x="192" y="248" width="96" height="14" rx="4" fill="#A87850" stroke="#3D2B1F" stroke-width="2.2"/>
-        <!-- ножки передние -->
-        <rect x="196" y="262" width="10" height="72" rx="3" fill="#9B7050" stroke="#3D2B1F" stroke-width="1.8"/>
-        <rect x="274" y="262" width="10" height="72" rx="3" fill="#9B7050" stroke="#3D2B1F" stroke-width="1.8"/>
-        <!-- ножки задние (чуть короче, видны за сиденьем) -->
-        <rect x="210" y="255" width="8" height="60" rx="3" fill="#7A5838" stroke="#3D2B1F" stroke-width="1.5"/>
-        <rect x="262" y="255" width="8" height="60" rx="3" fill="#7A5838" stroke="#3D2B1F" stroke-width="1.5"/>
-        <!-- перекладина между ножками -->
-        <rect x="202" y="306" width="82" height="7" rx="3" fill="#9B7050" stroke="#3D2B1F" stroke-width="1.5"/>
-
-        <!-- ── КОТИК на стуле ── -->
-        <!-- хвост, свисающий со стула -->
-        <path d="M 276 254 C 298 272 302 295 287 302 C 273 308 262 296 268 284" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-        <!-- тело на сиденье -->
-        <ellipse cx="240" cy="226" rx="40" ry="30" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.5"/>
-        <ellipse cx="240" cy="233" rx="22" ry="18" fill="#FDE8D0" opacity=".7"/>
-        <!-- голова -->
-        <ellipse cx="240" cy="183" rx="32" ry="30" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.5"/>
-        <!-- уши -->
-        <path d="M 215 166 L 205 140 L 226 163 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M 216 164 L 209 146 L 224 162 Z" fill="#F5A8A8"/>
-        <path d="M 263 163 L 273 137 L 276 161 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M 264 162 L 271 144 L 274 160 Z" fill="#F5A8A8"/>
-        <!-- глаза: абсолютно спокойные (дуги) -->
-        <path d="M 220 180 C 225 173 233 173 238 180" fill="none" stroke="#3D2B1F" stroke-width="3" stroke-linecap="round"/>
-        <path d="M 242 180 C 247 173 255 173 260 180" fill="none" stroke="#3D2B1F" stroke-width="3" stroke-linecap="round"/>
-        <!-- нос -->
-        <path d="M 237 192 L 243 192 L 240 197 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.5"/>
-        <!-- умиротворённая улыбка -->
-        <path d="M 229 204 C 235 213 245 213 251 204" fill="none" stroke="#3D2B1F" stroke-width="2.8" stroke-linecap="round"/>
-        <!-- румянец -->
-        <ellipse cx="218" cy="191" rx="12" ry="7" fill="#F5A0A0" opacity=".45"/>
-        <ellipse cx="263" cy="191" rx="12" ry="7" fill="#F5A0A0" opacity=".45"/>
-        <!-- усы -->
-        <line x1="234" y1="194" x2="204" y2="188" stroke="#3D2B1F" stroke-width="1.6" opacity=".65"/>
-        <line x1="234" y1="196" x2="202" y2="196" stroke="#3D2B1F" stroke-width="1.6" opacity=".65"/>
-        <line x1="246" y1="194" x2="276" y2="188" stroke="#3D2B1F" stroke-width="1.6" opacity=".65"/>
-        <line x1="246" y1="196" x2="278" y2="196" stroke="#3D2B1F" stroke-width="1.6" opacity=".65"/>
-        <!-- полоски таббика на лбу -->
-        <path d="M 232 158 C 237 153 243 153 248 158" fill="none" stroke="#D4904A" stroke-width="2" stroke-linecap="round" opacity=".6"/>
-        <path d="M 228 166 C 234 161 246 161 252 166" fill="none" stroke="#D4904A" stroke-width="1.8" stroke-linecap="round" opacity=".4"/>
-        <!-- лапки на сиденье -->
-        <ellipse cx="210" cy="252" rx="19" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2"/>
-        <ellipse cx="270" cy="252" rx="19" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.2"/>
-
-        <!-- ── ПОДПИСЬ мема: ВСЁ ОКЕЙ ── -->
-        <text x="240" y="347"
-              text-anchor="middle"
-              font-family="Impact,'Arial Black',Arial,sans-serif"
-              font-size="62"
-              font-weight="900"
-              fill="white"
-              stroke="#000"
-              stroke-width="7"
-              paint-order="stroke fill"
-              letter-spacing="2">ВСЁ ОКЕЙ</text>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ 9 · ИТОГ ═══ -->
-<section class="slide l-center slide-accent">
-  <!-- CAT 9: zen pose, eyes closed peacefully, lightbulb above, knowing smile -->
-  <div class="slide-cat" style="bottom:20px;left:40px">
-    <svg viewBox="0 0 158 205" width="144" height="188">
-      <!-- lightbulb glow -->
-      <ellipse cx="79" cy="28" rx="28" ry="22" fill="#F5E080" opacity=".3"/>
-      <!-- lightbulb -->
-      <circle cx="79" cy="24" r="16" fill="#F5E080" stroke="#3D2B1F" stroke-width="2.2"/>
-      <path d="M 73 36 L 85 36" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <path d="M 74 40 L 84 40" stroke="#3D2B1F" stroke-width="2" stroke-linecap="round"/>
-      <path d="M 79 8 L 79 5" stroke="#F5E080" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M 68 12 L 65 9" stroke="#F5E080" stroke-width="2" stroke-linecap="round"/>
-      <path d="M 90 12 L 93 9" stroke="#F5E080" stroke-width="2" stroke-linecap="round"/>
-      <!-- shadow -->
-      <ellipse cx="79" cy="197" rx="44" ry="8" fill="#DDD5F0" opacity=".5"/>
-      <!-- tail curled zen -->
-      <path d="M 112 168 C 130 158 136 178 124 182 C 112 186 96 174 100 164" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <!-- body -->
-      <ellipse cx="79" cy="152" rx="42" ry="36" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <ellipse cx="79" cy="158" rx="24" ry="21" fill="#FDE8D0" opacity=".7"/>
-      <!-- head -->
-      <ellipse cx="79" cy="90" rx="30" ry="28" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <path d="M 57 74 L 49 48 L 67 68 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 58 72 L 53 56 L 65 68 Z" fill="#F5A8A8"/>
-      <path d="M 99 72 L 107 48 L 110 68 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 100 71 L 106 54 L 109 67 Z" fill="#F5A8A8"/>
-      <!-- zen closed eyes (curved lines with lashes) -->
-      <path d="M 62 88 C 66 83 73 83 77 88" fill="none" stroke="#3D2B1F" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M 63 88 L 63 91" stroke="#3D2B1F" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M 69 87 L 69 90" stroke="#3D2B1F" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M 76 88 L 76 91" stroke="#3D2B1F" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M 83 88 C 87 83 94 83 98 88" fill="none" stroke="#3D2B1F" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M 84 88 L 84 91" stroke="#3D2B1F" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M 90 87 L 90 90" stroke="#3D2B1F" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M 97 88 L 97 91" stroke="#3D2B1F" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M 76 97 L 82 97 L 79 100 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.2"/>
-      <!-- blissful smile -->
-      <path d="M 69 106 C 74 112 84 112 89 106" fill="none" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <ellipse cx="59" cy="96" rx="10" ry="6" fill="#F5A0A0" opacity=".4"/>
-      <ellipse cx="99" cy="96" rx="10" ry="6" fill="#F5A0A0" opacity=".4"/>
-      <line x1="77" y1="98" x2="52" y2="93" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="77" y1="100" x2="51" y2="100" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="81" y1="98" x2="106" y2="93" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="81" y1="100" x2="107" y2="100" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <!-- paws folded zen -->
-      <ellipse cx="57" cy="178" rx="18" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <ellipse cx="101" cy="178" rx="18" ry="10" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <!-- sparkles around lightbulb -->
-      <text x="56" y="20" font-size="12" fill="#F5C840" opacity=".8">✦</text>
-      <text x="96" y="18" font-size="10" fill="#F5C840" opacity=".7">✦</text>
-    </svg>
-  </div>
-  <div style="max-width:700px;display:flex;flex-direction:column;align-items:center;gap:32px;text-align:center">
-    <div class="eyebrow">Слайд 9 · Итог</div>
-    <h2 class="title">Проджект — это <em>человек,</em><br>у которого в голове<br>вся картина <em>целиком</em></h2>
-    <div class="quote-block" style="max-width:100%;text-align:left">
-      <div class="quote-text" style="font-size:clamp(16px,1.9vw,21px);font-weight:500">
-        Когда у всех остальных только их кусочек —
-        проджект держит в голове всё.
-        И отвечает за то, чтобы из этих кусочков
-        получился <strong>результат</strong>.
+    <section class="slide slide--accent slide--center slide--stereotype" data-slide="2">
+      <figure class="slide-cat slide-cat--laptop" aria-hidden="true">
+        <img src="assets/illustrations/cat-laptop.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body slide-body--center slide-body--quote">
+        <div class="paper-note paper-note--side">стереотип</div>
+        <header class="slide-heading slide-heading--center">
+          <div class="eyebrow">Слайд 2</div>
+          <h2 class="title">Миф звучит так:</h2>
+        </header>
+        <blockquote class="quote-block quote-block--punch">
+          <p class="quote-text">Проджект — это человек, который просто пересылает сообщения и ходит на встречи.</p>
+        </blockquote>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══ 10 · ПОЧЕМУ ИДУТ ═══ -->
-<section class="slide l-content">
-  <!-- CAT 10: counting money with stars in eyes, sitting on pile of coins, huge grin -->
-  <div class="slide-cat top-right" style="top:48px;right:24px">
-    <svg viewBox="0 0 162 210" width="148" height="192">
-      <!-- coin pile -->
-      <ellipse cx="82" cy="198" rx="52" ry="12" fill="#F5E080" stroke="#C8A820" stroke-width="2"/>
-      <ellipse cx="82" cy="188" rx="46" ry="11" fill="#F5D840" stroke="#C8A820" stroke-width="2"/>
-      <ellipse cx="82" cy="178" rx="40" ry="10" fill="#F5E080" stroke="#C8A820" stroke-width="2"/>
-      <!-- money flying -->
-      <rect x="112" y="62" width="34" height="18" rx="4" fill="#A8E8A8" stroke="#4A8A4A" stroke-width="1.8" transform="rotate(18,129,71)"/>
-      <text x="129" y="75" text-anchor="middle" font-size="8" fill="#4A8A4A" font-weight="700" transform="rotate(18,129,71)">$$$</text>
-      <rect x="118" y="38" width="28" height="16" rx="4" fill="#A8E8A8" stroke="#4A8A4A" stroke-width="1.8" transform="rotate(-12,132,46)"/>
-      <text x="132" y="50" text-anchor="middle" font-size="8" fill="#4A8A4A" font-weight="700" transform="rotate(-12,132,46)">$$$</text>
-      <!-- body on coins -->
-      <ellipse cx="82" cy="148" rx="42" ry="34" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <ellipse cx="82" cy="153" rx="24" ry="20" fill="#FDE8D0" opacity=".7"/>
-      <!-- tail -->
-      <path d="M 36 160 C 15 152 12 174 25 178 C 38 182 57 169 56 158" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <!-- paws up (excited/grabbing) -->
-      <ellipse cx="38" cy="138" rx="14" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(50,38,138)"/>
-      <ellipse cx="126" cy="138" rx="14" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-50,126,138)"/>
-      <!-- head -->
-      <ellipse cx="82" cy="90" rx="30" ry="28" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <path d="M 60 74 L 52 48 L 70 68 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 61 72 L 56 56 L 68 68 Z" fill="#F5A8A8"/>
-      <path d="M 102 72 L 110 48 L 113 68 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 103 71 L 109 54 L 112 67 Z" fill="#F5A8A8"/>
-      <!-- STAR EYES -->
-      <text x="68" y="90" text-anchor="middle" font-size="16" fill="#F5C840">★</text>
-      <text x="96" y="90" text-anchor="middle" font-size="16" fill="#F5C840">★</text>
-      <path d="M 79 97 L 85 97 L 82 101 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.3"/>
-      <!-- huge excited smile with teeth -->
-      <path d="M 68 108 C 75 118 89 118 96 108" fill="#F08080" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="76" y1="108" x2="76" y2="116" stroke="#3D2B1F" stroke-width="1.5"/>
-      <line x1="82" y1="108" x2="82" y2="118" stroke="#3D2B1F" stroke-width="1.5"/>
-      <line x1="88" y1="108" x2="88" y2="116" stroke="#3D2B1F" stroke-width="1.5"/>
-      <!-- rosy cheeks big -->
-      <ellipse cx="60" cy="96" rx="11" ry="7" fill="#F5A0A0" opacity=".5"/>
-      <ellipse cx="104" cy="96" rx="11" ry="7" fill="#F5A0A0" opacity=".5"/>
-      <line x1="80" y1="98" x2="55" y2="93" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="80" y1="100" x2="54" y2="100" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="98" x2="109" y2="93" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="84" y1="100" x2="110" y2="100" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <ellipse cx="60" cy="172" rx="17" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="104" cy="172" rx="17" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2"/>
-    </svg>
-  </div>
-  <div>
-    <div class="eyebrow">Слайд 10</div>
-    <h2 class="title" style="margin-bottom:6px">Почему в эту<br>профессию <em>идут</em></h2>
-    <p class="lead" style="font-size:16px">Смотри сам:</p>
-  </div>
-  <div class="perk-list">
-    <div class="perk-item">
-      <div class="perk-icon">🌍</div>
-      <div class="perk-body">
-        <strong>Работаешь из любой точки мира</strong>
-        <p>Диван, кафе, Бали — без разницы.</p>
+    <section class="slide slide--translator" data-slide="3">
+      <figure class="slide-cat slide-cat--translator" aria-hidden="true">
+        <img src="assets/illustrations/cat-translator.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body">
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 3</div>
+          <h2 class="title title--tight">На деле проджект —<br><em>переводчик интересов</em></h2>
+        </header>
+        <div class="process-note">его работа — чтобы все поняли друг друга одинаково</div>
+        <div class="flow-grid" aria-label="Поток коммуникации">
+          <article class="flow-card">
+            <div class="flow-label">Клиент</div>
+            <p>Хочет результат</p>
+          </article>
+          <div class="flow-arrow">→</div>
+          <article class="flow-card flow-card--accent">
+            <div class="flow-label">Проджект</div>
+            <p>Переводит в задачу, сроки и приоритет</p>
+          </article>
+          <div class="flow-arrow">→</div>
+          <article class="flow-card">
+            <div class="flow-label">Команда</div>
+            <p>Понимает, что именно делать</p>
+          </article>
+        </div>
       </div>
-    </div>
-    <div class="perk-item">
-      <div class="perk-icon">💰</div>
-      <div class="perk-body">
-        <strong>Управленческая роль — хороший оклад и часто процент от прибыли</strong>
-        <p>Без потолка по доходу.</p>
+    </section>
+
+    <section class="slide slide--vs" data-slide="4">
+      <figure class="slide-cat slide-cat--superhero" aria-hidden="true">
+        <img src="assets/illustrations/cat-superhero.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body">
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 4</div>
+          <h2 class="title title--tight">Это <em>не</em> ассистент</h2>
+          <p class="lead lead--small">Разница не в названии. Разница в типе ответственности.</p>
+        </header>
+        <div class="compare-board">
+          <article class="compare-side">
+            <div class="vs-label vs-label-muted">Ассистент</div>
+            <p class="compare-line">получает задачу</p>
+            <p class="compare-line">исполняет</p>
+            <p class="compare-line">работает внутри поставленного</p>
+          </article>
+          <article class="compare-side compare-side--accent">
+            <div class="vs-label vs-label-accent">Проджект</div>
+            <p class="compare-line">сам находит, где проблема</p>
+            <p class="compare-line">собирает людей вокруг решения</p>
+            <p class="compare-line"><strong class="accent-text">отвечает за движение проекта</strong></p>
+          </article>
+        </div>
       </div>
-    </div>
-    <div class="perk-item">
-      <div class="perk-icon">🎯</div>
-      <div class="perk-body">
-        <strong>Ты сам выбираешь с чем работать</strong>
-        <p>Любишь вязание — идёшь в школу вязания. Близко IT — идёшь в IT. Хочется большой бизнес — идёшь в консалтинг.</p>
+    </section>
+
+    <section class="slide slide--where" data-slide="5">
+      <figure class="slide-cat slide-cat--remote" aria-hidden="true">
+        <img src="assets/illustrations/cat-remote.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body">
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 5</div>
+          <h2 class="title title--tight">Где вообще нужен<br><em>проджект</em></h2>
+          <p class="lead">В любой системе, где есть люди, задачи, сроки и деньги.</p>
+        </header>
+        <div class="tag-cluster" aria-label="Примеры сфер">
+          <div class="tag-card">онлайн-школа</div>
+          <div class="tag-card">агентство</div>
+          <div class="tag-card">консалтинг</div>
+          <div class="tag-card">HR</div>
+          <div class="tag-card">продуктовая команда</div>
+          <div class="tag-card">любой сервис с процессами</div>
+        </div>
+        <p class="body-note">Если есть проект, который надо собрать и довести до результата — там почти всегда нужен проджект.</p>
       </div>
-    </div>
-    <div class="perk-item">
-      <div class="perk-icon">📈</div>
-      <div class="perk-body">
-        <strong>Никто не мешает вести сразу несколько проектов</strong>
-        <p>Профессия, где ты сам решаешь сколько зарабатывать, где работать и в какой нише расти.</p>
+    </section>
+
+    <section class="slide slide--day" data-slide="6">
+      <figure class="slide-cat slide-cat--chaos" aria-hidden="true">
+        <img src="assets/illustrations/cat-chaos.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body">
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 6</div>
+          <h2 class="title title--tight">Как выглядит<br><em>обычный день</em></h2>
+        </header>
+        <div class="paper-note paper-note--inline">не один большой созвон, а постоянное переключение</div>
+        <div class="day-stack">
+          <article class="day-strip">
+            <strong>синхронизировать</strong>
+            <span>кто делает что и где стоп</span>
+          </article>
+          <article class="day-strip">
+            <strong>приоритизировать</strong>
+            <span>что важно сейчас, а что позже</span>
+          </article>
+          <article class="day-strip">
+            <strong>разруливать</strong>
+            <span>сроки, риски, коммуникацию и хаос</span>
+          </article>
+          <article class="day-strip">
+            <strong>сводить всё в систему</strong>
+            <span>таблицы, чаты, статусы, решения</span>
+          </article>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══ 11 · КТО Я ═══ -->
-<section class="slide l-split">
-  <!-- CAT 11: waving enthusiastically, big smile, holding "Привет!" sign -->
-  <div class="slide-cat" style="bottom:16px;right:16px">
-    <svg viewBox="0 0 150 200" width="136" height="182">
-      <!-- "Привет!" sign -->
-      <rect x="86" y="52" width="58" height="30" rx="8" fill="#C4B5E8" stroke="#5C4E8F" stroke-width="2.2"/>
-      <text x="115" y="73" text-anchor="middle" font-size="13" font-weight="800" fill="white">Привет!</text>
-      <!-- sign stick -->
-      <line x1="108" y1="82" x2="102" y2="108" stroke="#8B7BC0" stroke-width="3" stroke-linecap="round"/>
-      <!-- shadow -->
-      <ellipse cx="74" cy="192" rx="44" ry="8" fill="#DDD5F0" opacity=".5"/>
-      <!-- tail -->
-      <path d="M 28 158 C 7 150 4 172 17 176 C 30 180 50 167 48 156" fill="none" stroke="#C8824A" stroke-width="8" stroke-linecap="round"/>
-      <!-- body -->
-      <ellipse cx="74" cy="146" rx="42" ry="36" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <ellipse cx="74" cy="152" rx="24" ry="21" fill="#FDE8D0" opacity=".7"/>
-      <!-- waving arm holding sign -->
-      <ellipse cx="100" cy="112" rx="14" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2" transform="rotate(-45,100,112)"/>
-      <!-- head -->
-      <ellipse cx="74" cy="86" rx="30" ry="28" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.3"/>
-      <path d="M 52 70 L 44 44 L 62 64 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 53 68 L 48 52 L 60 64 Z" fill="#F5A8A8"/>
-      <path d="M 94 68 L 102 44 L 105 64 Z" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1" stroke-linejoin="round"/>
-      <path d="M 95 67 L 101 50 L 104 63 Z" fill="#F5A8A8"/>
-      <!-- SUPER happy eyes with arc smile lines at corners -->
-      <ellipse cx="63" cy="84" rx="9" ry="10" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="63" cy="85" rx="5.5" ry="6.5" fill="#2A1A0E"/>
-      <ellipse cx="65" cy="83" rx="2" ry="2" fill="white"/>
-      <ellipse cx="85" cy="84" rx="9" ry="10" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="85" cy="85" rx="5.5" ry="6.5" fill="#2A1A0E"/>
-      <ellipse cx="87" cy="83" rx="2" ry="2" fill="white"/>
-      <path d="M 71 94 L 77 94 L 74 97 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.3"/>
-      <!-- huge open smile -->
-      <path d="M 62 103 C 68 112 80 112 86 103" fill="#F08080" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="72" y1="103" x2="72" y2="110" stroke="#3D2B1F" stroke-width="1.5"/>
-      <line x1="78" y1="104" x2="78" y2="112" stroke="#3D2B1F" stroke-width="1.5"/>
-      <ellipse cx="52" cy="93" rx="10" ry="6" fill="#F5A0A0" opacity=".45"/>
-      <ellipse cx="96" cy="93" rx="10" ry="6" fill="#F5A0A0" opacity=".45"/>
-      <line x1="72" y1="95" x2="48" y2="90" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="72" y1="97" x2="47" y2="97" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="76" y1="95" x2="100" y2="90" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <line x1="76" y1="97" x2="101" y2="97" stroke="#3D2B1F" stroke-width="1.4" opacity=".6"/>
-      <ellipse cx="52" cy="172" rx="18" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-      <ellipse cx="96" cy="172" rx="18" ry="9" fill="#F5C8A0" stroke="#3D2B1F" stroke-width="2.1"/>
-    </svg>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:22px">
-    <div class="eyebrow">Слайд 11</div>
-    <h2 class="title">Кто я и почему<br><em>рассказываю</em></h2>
-    <p class="lead" style="font-size:clamp(16px,1.8vw,19px);max-width:440px">
-      Я Даша. Выросла из официантки в проджекта в онлайне.
-      <strong>3 года в профессии.</strong>
-    </p>
-    <p class="body-text" style="max-width:440px">
-      Веду канал про профессию проджекта изнутри.
-      Чтобы наконец всем стало понятно кто это такой
-      и почему это круто.
-    </p>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:14px">
-    <div class="card" style="padding:18px 20px">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lila-d);margin-bottom:8px">Путь</div>
-      <div style="display:flex;align-items:center;gap:12px;font-size:15px;color:var(--text-s)">
-        <span>Официантка</span>
-        <span style="color:var(--lila);font-size:18px">→</span>
-        <span style="font-weight:700;color:var(--text)">Проджект</span>
+    <section class="slide slide--tasks" data-slide="7">
+      <figure class="slide-cat slide-cat--clipboard" aria-hidden="true">
+        <img src="assets/illustrations/cat-clipboard.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body slide-body--wide">
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 7</div>
+          <h2 class="title title--compact">Что входит<br>в <em>работу</em></h2>
+          <p class="lead lead--small">Если коротко — вот четыре больших зоны.</p>
+        </header>
+        <div class="quadrants">
+          <article class="quad-card">
+            <div class="quad-title">Люди</div>
+            <p>поиск, найм, синхронизация, one-to-one</p>
+          </article>
+          <article class="quad-card">
+            <div class="quad-title">Процесс</div>
+            <p>постановка задач, контроль сроков, качество</p>
+          </article>
+          <article class="quad-card">
+            <div class="quad-title">Операционка</div>
+            <p>таблицы, статусы, запуски, обновления, отчёты</p>
+          </article>
+          <article class="quad-card quad-card--accent">
+            <div class="quad-title">Результат</div>
+            <p>чтобы всё это сошлось в работающий проект</p>
+          </article>
+        </div>
       </div>
-    </div>
-    <div class="card" style="padding:18px 20px">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lila-d);margin-bottom:8px">Опыт</div>
-      <div style="font-size:22px;font-weight:800;color:var(--lila-d)">3 года</div>
-      <div style="font-size:14px;color:var(--text-s);margin-top:2px">в профессии проджекта</div>
-    </div>
-    <div class="card" style="padding:18px 20px">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--lila-d);margin-bottom:8px">Миссия</div>
-      <div style="font-size:15px;color:var(--text);line-height:1.5">Рассказывать о профессии честно и изнутри — чтобы она перестала быть загадкой</div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- ═══ 12 · ФИНАЛ ═══ -->
-<section class="slide l-center slide-dark">
-  <div style="max-width:620px;display:flex;flex-direction:column;align-items:center;gap:0;text-align:center">
-    <div class="pill" style="margin-bottom:24px">Слайд 12</div>
-    <h1 class="hero" style="color:#fff;margin-bottom:22px;font-size:clamp(36px,5.5vw,72px)">
-      Если тебе<br><em style="color:var(--lila)">откликнулось</em> —
-    </h1>
-    <p class="lead" style="color:rgba(255,255,255,.8);margin-bottom:10px;max-width:500px;font-size:clamp(16px,1.8vw,20px)">
-      значит, ты либо уже проджект,<br>либо скоро им станешь.
-    </p>
-    <p class="lead" style="color:rgba(255,255,255,.6);margin-bottom:36px;max-width:500px;font-size:clamp(15px,1.6vw,18px)">
-      Подписывайся, если хочешь разобраться в профессии
-      и понять, твоё ли это.
-    </p>
-    <!-- CAT 12: winking, pointing down at button with giant paw -->
-    <svg viewBox="0 0 220 110" width="210" height="105" style="margin-bottom:4px">
-      <!-- shadow -->
-      <ellipse cx="110" cy="104" rx="56" ry="8" fill="rgba(255,255,255,.15)"/>
-      <!-- tail -->
-      <path d="M 50 90 C 32 80 28 96 38 100 C 48 104 66 92 64 82" fill="none" stroke="#C8824A" stroke-width="7" stroke-linecap="round"/>
-      <!-- body sitting -->
-      <ellipse cx="108" cy="80" rx="46" ry="30" fill="#F5C8A0" stroke="#fff" stroke-width="2.5" opacity=".9"/>
-      <ellipse cx="108" cy="84" rx="26" ry="18" fill="#FDE8D0" opacity=".6"/>
-      <!-- head -->
-      <ellipse cx="108" cy="46" rx="30" ry="28" fill="#F5C8A0" stroke="#fff" stroke-width="2.5" opacity=".9"/>
-      <path d="M 86 30 L 78 8 L 96 26 Z" fill="#F5C8A0" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" opacity=".9"/>
-      <path d="M 87 28 L 82 14 L 94 26 Z" fill="#F5A8A8" opacity=".8"/>
-      <path d="M 128 28 L 136 6 L 138 26 Z" fill="#F5C8A0" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" opacity=".9"/>
-      <path d="M 129 27 L 135 11 L 137 25 Z" fill="#F5A8A8" opacity=".8"/>
-      <!-- wink left eye closed -->
-      <path d="M 90 44 C 94 39 100 39 104 44" fill="none" stroke="#3D2B1F" stroke-width="2.5" stroke-linecap="round"/>
-      <!-- right eye open/excited -->
-      <ellipse cx="122" cy="44" rx="9" ry="10" fill="white" stroke="#3D2B1F" stroke-width="2"/>
-      <ellipse cx="122" cy="45" rx="5.5" ry="6.5" fill="#2A1A0E"/>
-      <ellipse cx="124" cy="43" rx="2" ry="2" fill="white"/>
-      <path d="M 105 53 L 111 53 L 108 56 Z" fill="#F08080" stroke="#3D2B1F" stroke-width="1.3"/>
-      <!-- cheeky grin -->
-      <path d="M 97 62 C 103 70 113 70 119 62" fill="#F08080" stroke="#3D2B1F" stroke-width="2.2" stroke-linecap="round"/>
-      <line x1="105" y1="62" x2="105" y2="69" stroke="#3D2B1F" stroke-width="1.5"/>
-      <line x1="111" y1="63" x2="111" y2="70" stroke="#3D2B1F" stroke-width="1.5"/>
-      <ellipse cx="87" cy="53" rx="10" ry="6" fill="#F5A0A0" opacity=".4"/>
-      <ellipse cx="128" cy="53" rx="10" ry="6" fill="#F5A0A0" opacity=".4"/>
-      <!-- pointing paw DOWN at button -->
-      <ellipse cx="152" cy="82" rx="16" ry="9" fill="#F5C8A0" stroke="#fff" stroke-width="2.2" transform="rotate(-60,152,82)" opacity=".9"/>
-      <!-- arrow pointing down -->
-      <path d="M 158 92 L 158 104" stroke="rgba(255,255,255,.7)" stroke-width="2.5" stroke-linecap="round"/>
-      <polygon points="152,102 164,102 158,110" fill="rgba(255,255,255,.7)"/>
-      <!-- paws bottom -->
-      <ellipse cx="82" cy="100" rx="18" ry="9" fill="#F5C8A0" stroke="#fff" stroke-width="2" opacity=".9"/>
-      <ellipse cx="132" cy="100" rx="18" ry="9" fill="#F5C8A0" stroke="#fff" stroke-width="2" opacity=".9"/>
-    </svg>
-    <a href="https://t.me/+SsXb4TNPFIljYmUy"
-       target="_blank"
-       rel="noopener"
-       style="display:inline-flex;align-items:center;gap:10px;background:var(--lila);color:#fff;font-size:clamp(15px,1.8vw,18px);font-weight:700;padding:16px 40px;border-radius:999px;text-decoration:none;transition:background .22s,transform .22s,box-shadow .22s;box-shadow:0 4px 24px rgba(196,181,232,.45)"
-       onmouseover="this.style.background='#A898CC';this.style.transform='scale(1.05)';this.style.boxShadow='0 8px 32px rgba(196,181,232,.6)'"
-       onmouseout="this.style.background='var(--lila)';this.style.transform='scale(1)';this.style.boxShadow='0 4px 24px rgba(196,181,232,.45)'">
-      ✦&nbsp;&nbsp;Подписаться на канал
-    </a>
-  </div>
-</section>
+    <section class="slide slide--center slide--panic" data-slide="8">
+      <div class="slide-body slide-body--center slide-body--narrow">
+        <header class="slide-heading slide-heading--center">
+          <div class="eyebrow">Слайд 8</div>
+          <h2 class="title">Что бывает,<br>когда <em>проджекта нет</em></h2>
+        </header>
+        <figure class="scene-frame" aria-hidden="true">
+          <img src="assets/graphics/meme-fire.svg" alt="" class="scene-illustration" loading="eager">
+        </figure>
+        <div class="scene-caption">у каждого свой кусок работы. общей картины — ни у кого.</div>
+      </div>
+    </section>
 
-</div><!-- /deck -->
+    <section class="slide slide--accent slide--center slide--summary" data-slide="9">
+      <figure class="slide-cat slide-cat--zen" aria-hidden="true">
+        <img src="assets/illustrations/cat-zen.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body slide-body--center slide-body--quote">
+        <header class="slide-heading slide-heading--center">
+          <div class="eyebrow">Слайд 9 · Вывод</div>
+          <h2 class="title">Проджект держит<br><em>всю картину</em>, а не один кусок</h2>
+        </header>
+        <blockquote class="quote-block quote-block--summary">
+          <p class="quote-text quote-text--compact">Это человек, который связывает людей, решения, сроки и деньги в один результат.</p>
+        </blockquote>
+      </div>
+    </section>
 
-<!-- nav arrows -->
-<button class="nav hidden" id="nav-prev" aria-label="Предыдущий слайд">
-  <svg viewBox="0 0 18 18"><polyline points="11 3 5 9 11 15"/></svg>
-</button>
-<button class="nav" id="nav-next" aria-label="Следующий слайд">
-  <svg viewBox="0 0 18 18"><polyline points="7 3 13 9 7 15"/></svg>
-</button>
+    <section class="slide slide--benefits" data-slide="10">
+      <figure class="slide-cat slide-cat--money" aria-hidden="true">
+        <img src="assets/illustrations/cat-money.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body">
+        <header class="slide-heading">
+          <div class="eyebrow">Слайд 10</div>
+          <h2 class="title title--tight">Почему в профессию<br><em>идут</em></h2>
+        </header>
+        <div class="benefit-rail">
+          <article class="benefit-card">
+            <strong>Свобода</strong>
+            <span>можно работать удалённо и из разных ниш</span>
+          </article>
+          <article class="benefit-card">
+            <strong>Деньги</strong>
+            <span>управленческая роль даёт рост дохода</span>
+          </article>
+          <article class="benefit-card">
+            <strong>Влияние</strong>
+            <span>ты не винтик, а человек, который собирает процесс</span>
+          </article>
+          <article class="benefit-card">
+            <strong>Масштаб</strong>
+            <span>можно вести несколько проектов и расти очень широко</span>
+          </article>
+        </div>
+      </div>
+    </section>
 
-<!-- dots -->
-<div id="dots"></div>
+    <section class="slide slide--bio" data-slide="11">
+      <figure class="slide-cat slide-cat--hello" aria-hidden="true">
+        <img src="assets/illustrations/cat-hello.svg" alt="" class="slide-illustration" loading="eager">
+      </figure>
+      <div class="slide-body slide-body--split">
+        <div class="bio-copy">
+          <header class="slide-heading">
+            <div class="eyebrow">Слайд 11</div>
+            <h2 class="title">Почему я вообще<br><em>об этом рассказываю</em></h2>
+            <p class="lead">Я Даша. Выросла из официантки в проджекта и уже 3 года внутри профессии.</p>
+          </header>
+          <p class="body-text bio-text">Моя задача — объяснять профессию без тумана и без красивой легенды. Нормально, честно и по делу.</p>
+        </div>
+        <div class="bio-facts">
+          <article class="card card--panel">
+            <div class="meta-label">Путь</div>
+            <div class="path-row">
+              <span>Официантка</span>
+              <span class="path-arrow">→</span>
+              <span class="path-strong">Проджект</span>
+            </div>
+          </article>
+          <article class="card card--panel">
+            <div class="meta-label">Опыт</div>
+            <div class="fact-value">3 года</div>
+            <div class="fact-caption">в профессии и в реальных проектах</div>
+          </article>
+          <article class="card card--panel">
+            <div class="meta-label">Фокус</div>
+            <p class="body-text body-text--panel">Показывать, как профессия выглядит изнутри, а не как её описывают в вакансиях.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-<script>
-(function () {
-  const slides  = Array.from(document.querySelectorAll('.slide'));
-  const bar     = document.getElementById('progress-bar');
-  const counter = document.getElementById('counter');
-  const dotsEl  = document.getElementById('dots');
-  const btnPrev = document.getElementById('nav-prev');
-  const btnNext = document.getElementById('nav-next');
-  const TOTAL   = slides.length;
-  let cur = 0;
+    <section class="slide slide--dark slide--center slide--outro" data-slide="12">
+      <div class="slide-body slide-body--center slide-body--final">
+        <div class="pill">Слайд 12</div>
+        <h1 class="hero hero--final">Если откликнулось —<br><em>нам по пути</em></h1>
+        <p class="lead lead--dark">Подписывайся, если хочешь разобраться в профессии и понять, твоё ли это.</p>
+        <img src="assets/illustrations/cat-final.svg" alt="" class="final-illustration" loading="eager">
+        <a href="https://t.me/+SsXb4TNPFIljYmUy" target="_blank" rel="noopener" class="cta-link">✦&nbsp;&nbsp;Подписаться на канал</a>
+      </div>
+    </section>
+  </main>
 
-  /* build dots */
-  slides.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'dot' + (i === 0 ? ' active' : '');
-    d.setAttribute('aria-label', 'Слайд ' + (i + 1));
-    d.addEventListener('click', () => go(i));
-    dotsEl.appendChild(d);
-  });
+  <button class="nav hidden" id="nav-prev" aria-label="Предыдущий слайд">
+    <svg viewBox="0 0 18 18" aria-hidden="true"><polyline points="11 3 5 9 11 15"/></svg>
+  </button>
+  <button class="nav" id="nav-next" aria-label="Следующий слайд">
+    <svg viewBox="0 0 18 18" aria-hidden="true"><polyline points="7 3 13 9 7 15"/></svg>
+  </button>
 
-  function update(n) {
-    bar.style.width = ((n + 1) / TOTAL * 100) + '%';
-    counter.innerHTML = '<b>' + (n + 1) + '</b> / ' + TOTAL;
-    btnPrev.classList.toggle('hidden', n === 0);
-    btnNext.classList.toggle('hidden', n === TOTAL - 1);
-  }
+  <div id="dots" aria-label="Навигация по слайдам"></div>
 
-  function go(n) {
-    if (n < 0 || n >= TOTAL || n === cur) return;
-    slides[cur].classList.remove('active');
-    dotsEl.children[cur].classList.remove('active');
-    cur = n;
-    slides[cur].classList.add('active');
-    dotsEl.children[cur].classList.add('active');
-    update(cur);
-  }
-
-  /* initialise state for slide 1 without triggering n===cur guard */
-  update(0);
-
-  /* buttons */
-  btnPrev.addEventListener('click', () => go(cur - 1));
-  btnNext.addEventListener('click', () => go(cur + 1));
-
-  /* keyboard */
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown'  || e.key === 'PageDown') go(cur + 1);
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'    || e.key === 'PageUp')   go(cur - 1);
-    if (e.key === 'Home') go(0);
-    if (e.key === 'End')  go(TOTAL - 1);
-  });
-
-  /* swipe */
-  let sx = 0, sy = 0;
-  document.addEventListener('touchstart', e => {
-    sx = e.changedTouches[0].clientX;
-    sy = e.changedTouches[0].clientY;
-  }, { passive: true });
-  document.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 44) {
-      go(cur + (dx < 0 ? 1 : -1));
-    }
-  }, { passive: true });
-})();
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
